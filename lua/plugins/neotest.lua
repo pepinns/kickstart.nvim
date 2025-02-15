@@ -99,7 +99,11 @@ return {
   -- fancy UI for the debugger
   {
     'rcarriga/nvim-dap-ui',
-    dependencies = { 'nvim-neotest/nvim-nio' },
+    dependencies = {
+      'nvim-neotest/nvim-nio',
+      { 'williamboman/mason.nvim', opts = {} },
+      'WhoIsSethDaniel/mason-tool-installer.nvim',
+    },
     -- stylua: ignore
     keys = {
       { "<leader>du", function() require("dapui").toggle({ }) end, desc = "Dap UI" },
@@ -119,6 +123,24 @@ return {
       dap.listeners.before.event_exited['dapui_config'] = function()
         dapui.close {}
       end
+
+      require('mason-tool-installer').setup { ensure_installed = { 'codelldb' } }
+      local package_path = require('mason-registry').get_package('codelldb'):get_install_path()
+      local codelldb_path = package_path .. '/extension/adapter/codelldb'
+      local library_path = package_path .. '/extension/lldb/lib/liblldb.dylib'
+      local uname = io.popen('uname'):read '*l'
+      if uname == 'Linux' then
+        library_path = package_path .. '/extension/lldb/lib/liblldb.so'
+      end
+      dap.adapters.codelldb = {
+        type = 'server',
+        port = '${port}',
+        host = '127.0.0.1',
+        executable = {
+          command = codelldb_path,
+          args = { '--liblldb', library_path, '--port', '${port}' },
+        },
+      }
     end,
   },
 }
