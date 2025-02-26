@@ -361,6 +361,7 @@ require('lazy').setup({
           }
         end,
         desc = 'Git Browse (copy)',
+        mode = { 'n', 'v' },
       },
     },
   },
