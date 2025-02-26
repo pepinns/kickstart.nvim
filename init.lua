@@ -1135,7 +1135,7 @@ end
 function find_file_from_here(filename)
   local dir
   for check in vim.fs.parents(vim.api.nvim_buf_get_name(0)) do
-    if vim.fn.filereadable(check .. filename) == 1 then
+    if vim.fn.filereadable(vim.fs.joinpath(check, filename)) == 1 then
       dir = check
       break
     end
