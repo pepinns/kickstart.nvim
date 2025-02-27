@@ -1130,7 +1130,23 @@ require('lazy').setup({
 vim.cmd.colorscheme 'vimcolors'
 local map = vim.keymap.set
 
-map('n', '<leader>xx', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+-- map('n', '<leader>xx', vim.diagnostic.setqflist, { desc = 'Open diagnostic [Q]uickfix list' })
+map('n', '<leader>xl', vim.diagnostic.open_float, { desc = 'Open line diagnostic' })
+-- map('n', '<leader>xn', function()
+--   local success = pcall(vim.cmd, 'cnext')
+--   if not success then
+--     vim.cmd 'cfirst'
+--   end
+-- end, { desc = 'next diagnostic' })
+-- map('n', '<leader>xp', function()
+--   local success = pcall(vim.cmd, 'cprev')
+--   if not success then
+--     vim.cmd 'clast'
+--   end
+-- end, { desc = 'prev diagnostic' })
+-- map({ 'n', 'v' }, ']]', '<cmd>Telescope quickfix<cr>', { desc = 'next quickfix' })
+-- map({ 'n', 'v' }, '[[', '<cmd>lprev<cr>', { desc = 'prev quickfix' })
+
 map('n', '<leader>qq', '<cmd>qall!<cr><esc>', { desc = 'Quit' })
 map('n', '<leader>fs', '<cmd>w<cr><esc>', { desc = 'Save File' })
 map('v', 'Y', '"*y', { desc = 'Copy to System Clipboard [ "*y ]', remap = false })
@@ -1158,6 +1174,10 @@ map('n', '<leader>wx', '<C-w>x', { desc = 'exchange window with next' })
 
 map('n', 'g>', '<cmd>tabnext<cr>', { desc = 'next tab' })
 map('n', 'g<', '<cmd>tabprevious<cr>', { desc = 'next tab' })
+
+-- map({ 'n', 'v' }, ']e', '<cmd>cnext<cr>', { desc = 'next quickfix' })
+-- map({ 'n', 'v' }, '[e', '<cmd>cprev<cr>', { desc = 'prev quickfix' })
+-- map({ 'n', 'v' }, ']E', '<cmd>clast<cr>', { desc = 'last quickfix' })
 
 function find_file_in_root(filename)
   local cargo_path = vim.fs.joinpath(vim.fn.getcwd(0), filename)
@@ -1220,6 +1240,8 @@ end
 local function augroup(name)
   return vim.api.nvim_create_augroup('lazyvim_' .. name, { clear = true })
 end
+
+--  TODO: create autocommand to re-evaluate the quickfix diagnostics list on save
 
 --
 -- close some filetypes with <q>
