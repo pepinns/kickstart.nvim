@@ -750,6 +750,7 @@ require('lazy').setup({
             ['rust-analyzer'] = {
               diagnostics = {
                 enable = true,
+                disabled = { 'unresolved-proc-macro', 'unresolved-macro-call', 'proc-macro-disabled' },
               },
               typing = {
                 triggerChars = '=.{><',
