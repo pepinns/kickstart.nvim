@@ -1247,8 +1247,8 @@ function find_file_from_here(filename)
   end
 end
 
-local types = require 'cmp.types'
 function compare_fields_top(entry1, entry2)
+  local types = require 'cmp.types'
   local kind1 = entry1:get_kind() --- @type lsp.CompletionItemKind | number
   local kind2 = entry2:get_kind() --- @type lsp.CompletionItemKind | number
   kind1 = kind1 == types.lsp.CompletionItemKind.Text and 100 or kind1
