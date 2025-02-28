@@ -330,9 +330,9 @@ require('lazy').setup({
         -- your picker configuration comes here
         -- or leave it empty to use the default settings
         -- refer to the configuration section below
-        projects = {
-          dev = { '~/pjs' },
-        },
+        -- projects = {
+        --   dev = { '~/pjs' },
+        -- },
       },
       statuscolumn = {
         -- your statuscolumn configuration comes here
@@ -372,13 +372,13 @@ require('lazy').setup({
         end,
         desc = 'Find Config File',
       },
-      {
-        '<leader>fp',
-        function()
-          Snacks.picker.projects()
-        end,
-        desc = 'Projects',
-      },
+      -- {
+      --   '<leader>fp',
+      --   function()
+      --     Snacks.picker.projects()
+      --   end,
+      --   desc = 'Projects',
+      -- },
       {
         '<leader>gY',
         function()
@@ -506,6 +506,41 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sn', function()
         builtin.find_files { cwd = vim.fn.stdpath 'config' }
       end, { desc = '[S]earch [N]eovim files' })
+    end,
+  },
+  {
+    'ahmedkhalf/project.nvim',
+    dependencies = {
+      'nvim-telescope/telescope.nvim',
+      'nvim-telescope/telescope-file-browser.nvim',
+    },
+    keys = {
+      {
+        '<leader>fp',
+        function()
+          require('telescope').extensions.projects.projects { only_sort_text = true }
+        end,
+        desc = 'Open Project',
+      },
+    },
+    init = function()
+      require('project_nvim').setup {
+        detection_methods = { 'pattern', 'lsp' },
+        patterns = {
+          '>pjs',
+          '.git',
+          '_darcs',
+          '.hg',
+          '.bzr',
+          '.svn',
+          'package.json',
+          'Cargo.lock',
+          'lazy-lock.json',
+        },
+      }
+
+      require('telescope').load_extension 'projects'
+      -- require'telescope'.load_extension('project')
     end,
   },
 
