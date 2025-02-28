@@ -1,3 +1,9 @@
+function neotree_toggle()
+  local bufname = vim.fn.bufname()
+  vim.print(bufname)
+  local is_neotree_buffer = string.match(bufname, 'neo%-tree [^ ]+ %[%d+]')
+  require('neo-tree.command').execute { toggle = is_neotree_buffer, dir = vim.uv.cwd() }
+end
 return {
   'nvim-neo-tree/neo-tree.nvim',
   branch = 'v3.x',
@@ -10,12 +16,14 @@ return {
   },
   keys = {
     {
+      '<C-f>',
+      neotree_toggle,
+      desc = 'NeoTree (cwd)',
+      mode = { 'n', 'x' },
+    },
+    {
       '<leader>ft',
-      function()
-        local bufname = vim.fn.bufname()
-        local is_neotree_buffer = string.match(bufname, 'neo%-tree [^ ]+ %[%d+]')
-        require('neo-tree.command').execute { toggle = is_neotree_buffer, dir = vim.uv.cwd() }
-      end,
+      neotree_toggle,
       desc = 'NeoTree (cwd)',
     },
     {
@@ -36,6 +44,9 @@ return {
     open_files_do_not_replace_types = { 'terminal', 'Trouble', 'qf', 'edgy' },
     window = {
       mappings = {
+        ['<C-f>'] = 'none', -- used for toggle neotree
+        ['<C-k>'] = { 'scroll_preview', config = { direction = 10 } },
+        ['<C-j>'] = { 'scroll_preview', config = { direction = -10 } },
         ['<space>'] = 'none',
         ['l'] = 'open',
         ['h'] = 'close_node',
