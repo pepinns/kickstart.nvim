@@ -634,6 +634,15 @@ require('lazy').setup({
           map('gC', require('telescope.builtin').lsp_outgoing_calls, '[G]oto Outgoing [C]alls')
           map('<leader>cC', require('telescope.builtin').lsp_outgoing_calls, '[G]oto Outgoing [C]alls')
 
+          -- Add a border to the hover for K
+          map('K', function()
+            vim.lsp.buf.hover { border = 'rounded' }
+          end, 'Hover Doc')
+
+          map('<C-K>', function()
+            vim.lsp.buf.signature_help { border = 'rounded', anchor_bias = 'above' }
+          end, 'Signature Help')
+
           -- Jump to the implementation of the word under your cursor.
           --  Useful when your language has ways of declaring types without an actual implementation.
           map('gI', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
