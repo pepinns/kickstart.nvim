@@ -10,7 +10,6 @@ return {
       'nvim-treesitter/nvim-treesitter',
       's1n7ax/nvim-window-picker',
       'mfussenegger/nvim-dap',
-      { 'rouge8/neotest-rust' },
     },
     opts = {
       status = { virtual_text = true },
@@ -24,15 +23,8 @@ return {
         open_enter_on_run = true,
       },
     },
-    init = function()
-      require('neotest').setup {
-        adapters = {
-          require 'neotest-rust',
-        },
-      }
-    end,
   -- stylua: ignore
-  keys = {
+    keys = {
       {
         "<localleader>tt",
         function()
@@ -61,14 +53,14 @@ return {
       { "<leader>tS", function() require("neotest").run.stop() end, desc = "Stop (Neotest)" },
       { "<leader>tw", function() require("neotest").watch.toggle(vim.fn.expand("%")) end, desc = "Toggle Watch (Neotest)" },
       { "<leader>td", function() require("neotest").run.run({strategy = "dap"}) end, desc = "Debug Nearest" },
-  },
+    },
   },
   {
     'mfussenegger/nvim-dap',
     desc = 'Debugging support. Requires language specific adapters to be configured. (see lang extras)',
 
     dependencies = {
-      'rcarriga/nvim-dap-ui',
+      'nvim-neotest/nvim-nio',
       -- virtual text for the debugger
       {
         'theHamsta/nvim-dap-virtual-text',
@@ -96,34 +88,13 @@ return {
       { "<leader>dw", function() require("dap.ui.widgets").hover() end, desc = "Widgets" },
     },
   },
-  -- fancy UI for the debugger
   {
-    'rcarriga/nvim-dap-ui',
+    'WhoIsSethDaniel/mason-tool-installer.nvim',
     dependencies = {
-      'nvim-neotest/nvim-nio',
       { 'williamboman/mason.nvim', opts = {} },
-      'WhoIsSethDaniel/mason-tool-installer.nvim',
     },
-    -- stylua: ignore
-    keys = {
-      { "<leader>du", function() require("dapui").toggle({ }) end, desc = "Dap UI" },
-      { "<leader>de", function() require("dapui").eval() end, desc = "Eval", mode = {"n", "v"} },
-    },
-    opts = {},
-    config = function(_, opts)
-      local dap = require 'dap'
-      local dapui = require 'dapui'
-      dapui.setup(opts)
-      dap.listeners.after.event_initialized['dapui_config'] = function()
-        dapui.open {}
-      end
-      dap.listeners.before.event_terminated['dapui_config'] = function()
-        dapui.close {}
-      end
-      dap.listeners.before.event_exited['dapui_config'] = function()
-        dapui.close {}
-      end
-
+    ft = { 'rust', 'c', 'c++' },
+    init = function()
       require('mason-tool-installer').setup { ensure_installed = { 'codelldb' } }
       local package_path = require('mason-registry').get_package('codelldb'):get_install_path()
       local codelldb_path = package_path .. '/extension/adapter/codelldb'
@@ -132,6 +103,7 @@ return {
       if uname == 'Linux' then
         library_path = package_path .. '/extension/lldb/lib/liblldb.so'
       end
+      local dap = require 'dap'
       dap.adapters.codelldb = {
         type = 'server',
         port = '${port}',
@@ -160,6 +132,34 @@ return {
             cwd = '${workspaceFolder}',
           },
         }
+      end
+    end,
+  },
+  -- fancy UI for the debugger
+  {
+    'rcarriga/nvim-dap-ui',
+    dependencies = {
+      'mfussenegger/nvim-dap',
+      'nvim-neotest/nvim-nio',
+    },
+    -- stylua: ignore
+    keys = {
+      { "<leader>du", function() require("dapui").toggle({ }) end, desc = "Dap UI" },
+      { "<leader>de", function() require("dapui").eval() end, desc = "Eval", mode = {"n", "v"} },
+    },
+    opts = {},
+    config = function(_, opts)
+      local dap = require 'dap'
+      local dapui = require 'dapui'
+      dapui.setup(opts)
+      dap.listeners.after.event_initialized['dapui_config'] = function()
+        dapui.open {}
+      end
+      dap.listeners.before.event_terminated['dapui_config'] = function()
+        dapui.close {}
+      end
+      dap.listeners.before.event_exited['dapui_config'] = function()
+        dapui.close {}
       end
     end,
   },
