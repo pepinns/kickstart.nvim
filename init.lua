@@ -623,6 +623,8 @@ require('lazy').setup({
             vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
           end
 
+          -- vim.lsp.handlers['textDocument/hover'] = vim.lsp.with(vim.lsp.handlers.hover, { border = 'rounded' })
+
           require 'telescope.builtin'
           -- Jump to the definition of the word under your cursor.
           --  This is where a variable was first declared, or where a function is defined, etc.
@@ -656,6 +658,30 @@ require('lazy').setup({
           --  the definition of its *type*, not where it was *defined*.
           map('<leader>cd', require('telescope.builtin').lsp_type_definitions, 'Type [D]efinition')
           map('gy', require('telescope.builtin').lsp_type_definitions, 'Type [D]efinition')
+
+          map('<leader>ce', function()
+            vim.lsp.buf_request(0, 'rust-analyzer/expandMacro', vim.lsp.util.make_position_params(), function(err, result, ctx, config)
+              if err then
+                vim.print('Error: ' .. err.message)
+                return
+              end
+              local buf = vim.api.nvim_create_buf(false, true)
+              local exp = result['expansion']
+              local lines = {}
+              for line in exp:gmatch '[^\r\n]+' do
+                table.insert(lines, line)
+              end
+              vim.api.nvim_buf_set_text(buf, 0, 0, 0, -1, exp)
+              local win = vim.api.nvim_open_win(buf, true, opts)
+              vim.api.nvim_win_set_option(win, 'winblend', 15)
+
+              local function close_popup()
+                vim.api.nvim_win_close(win, true)
+              end
+
+              vim.api.nvim_buf_set_keymap(buf, 'n', 'q', '<cmd>lua close_popup()<CR>', { noremap = true, silent = true })
+            end)
+          end, 'expand macro')
 
           -- Fuzzy find all the symbols in your current document.
           --  Symbols are things like variables, functions, types, etc.
@@ -1196,6 +1222,7 @@ map('n', '<leader>xl', vim.diagnostic.open_float, { desc = 'Open line diagnostic
 -- map({ 'n', 'v' }, '[[', '<cmd>lprev<cr>', { desc = 'prev quickfix' })
 
 map('n', '<leader>qq', '<cmd>qall!<cr><esc>', { desc = 'Quit' })
+map('n', '<C-q>', '<cmd>qall!<cr><esc>', { desc = 'Quit' })
 map('n', '<leader>fs', '<cmd>w<cr><esc>', { desc = 'Save File' })
 map('v', 'Y', '"*y', { desc = 'Copy to System Clipboard [ "*y ]', remap = false })
 -- Windows
