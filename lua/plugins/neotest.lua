@@ -96,7 +96,7 @@ return {
       { 'williamboman/mason.nvim', opts = {} },
     },
     ft = { 'rust', 'c', 'c++' },
-    init = function()
+    config = function()
       require('mason-tool-installer').setup { ensure_installed = { 'codelldb' } }
       local package_path = require('mason-registry').get_package('codelldb'):get_install_path()
       local codelldb_path = package_path .. '/extension/adapter/codelldb'
