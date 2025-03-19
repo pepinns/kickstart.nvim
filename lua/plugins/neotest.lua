@@ -61,6 +61,8 @@ return {
 
     dependencies = {
       'nvim-neotest/nvim-nio',
+      'nvim-neotest/nvim-dap-ui',
+      'WhoIsSethDaniel/mason-tool-installer.nvim',
       -- virtual text for the debugger
       {
         'theHamsta/nvim-dap-virtual-text',
