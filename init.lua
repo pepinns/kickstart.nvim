@@ -793,6 +793,15 @@ require('lazy').setup({
               typing = {
                 triggerChars = '=.{><',
               },
+              hover = {
+                maxSubstitutionLength = 200,
+                show = {
+                  fields = 20,
+                  enumVariants = 20,
+                  traitAssocItems = 20,
+                },
+              },
+
               semanticHighlighting = {
                 punctuation = {
                   enable = true,
