@@ -1058,17 +1058,20 @@ require('lazy').setup({
         sorting = {
           priority_weight = 1.0,
           comparators = {
-            -- compare.score_offset, -- not good at all
+            cmp.config.compare.offset,
+            cmp.config.compare.exact,
+            cmp.config.compare.score,
+            cmp.config.compare.recently_used,
             -- cmp.config.compare.kind,
             compare_fields_top,
-            -- cmp.config.compare.score, -- based on :  score = score + ((#sources - (source_index - 1)) * sorting.priority_weight)
+            cmp.config.compare.score, -- based on :  score = score + ((#sources - (source_index - 1)) * sorting.priority_weight)
             -- cmp.config.compare.locality,
             -- cmp.config.compare.recently_used,
             -- cmp.config.compare.offset,
             -- cmp.config.compare.order,
             -- compare.scopes, -- what?
             -- compare.sort_text,
-            -- compare.exact,
+            -- cmp.compare.exact,
             -- compare.length, -- useless
           },
         },
@@ -1233,6 +1236,7 @@ map('n', '<leader>xl', vim.diagnostic.open_float, { desc = 'Open line diagnostic
 map('n', '<leader>qq', '<cmd>qall!<cr><esc>', { desc = 'Quit' })
 map('n', '<C-q>', '<cmd>qall!<cr><esc>', { desc = 'Quit' })
 map('n', '<leader>fs', '<cmd>w<cr><esc>', { desc = 'Save File' })
+map('n', '<C-s>', '<cmd>w<cr><esc>', { desc = 'Save File' })
 map('v', 'Y', '"*y', { desc = 'Copy to System Clipboard [ "*y ]', remap = false })
 -- Windows
 --  See `:help wincmd` for a list of all window commands
