@@ -1,4 +1,12 @@
 return {
+    -- {
+    --     'williamboman/mason-lspconfig.nvim',
+    --     ft = 'rust',
+    --     config = function()
+    --         vim.print("In rust config")
+    --         require("lspconfig").rust_analyzer.setup {}
+    --     end
+    -- },
   {
     -- Main LSP Configuration
     'neovim/nvim-lspconfig',
@@ -7,7 +15,7 @@ return {
         servers = { 
         -- https://github.com/rust-lang/rust-analyzer/blob/master/crates/rust-analyzer/src/config.rs#L548
         rust_analyzer = {
-          mason_install = true,
+          -- mason_install = true,
           settings = {
             ['rust-analyzer'] = {
               diagnostics = {
