@@ -901,10 +901,12 @@ require('lazy').setup({
           end,
         },
       }
-      lconfig = require('lspconfig')
-      for server in pairs(opts.servers) do
-        lconfig[server].setup{}
-      end
+      -- I don't know why but when I try to do this without the mason-lspconfig above, it doesn't seem to pass the settigns properly
+      -- lconfig = require('lspconfig')
+      -- for server_name, server in pairs(opts.servers) do
+      --   server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
+      --   lconfig[server_name].setup{server}
+      -- end
     end,
   },
 
