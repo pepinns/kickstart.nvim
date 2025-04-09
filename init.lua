@@ -1042,7 +1042,7 @@ require('lazy').setup({
           window = { border = 'rounded' },
         },
         ghost_text = {
-          enabled = false,
+          enabled = true,
         },
       },
       signature = {
