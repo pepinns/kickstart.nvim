@@ -1,18 +1,18 @@
 return {
-    -- {
-    --     'williamboman/mason-lspconfig.nvim',
-    --     ft = 'rust',
-    --     config = function()
-    --         vim.print("In rust config")
-    --         require("lspconfig").rust_analyzer.setup {}
-    --     end
-    -- },
+  -- {
+  --     'williamboman/mason-lspconfig.nvim',
+  --     ft = 'rust',
+  --     config = function()
+  --         vim.print("In rust config")
+  --         require("lspconfig").rust_analyzer.setup {}
+  --     end
+  -- },
   {
     -- Main LSP Configuration
     'neovim/nvim-lspconfig',
     ft = { 'rust' },
     opts = {
-        servers = { 
+      servers = {
         -- https://github.com/rust-lang/rust-analyzer/blob/master/crates/rust-analyzer/src/config.rs#L548
         rust_analyzer = {
           -- mason_install = true,
@@ -67,7 +67,24 @@ return {
             },
           },
         },
-     },
+      },
+    },
+  },
+   {
+    "Saecki/crates.nvim",
+    event = { "BufRead Cargo.toml" },
+    opts = {
+      completion = {
+        crates = {
+          enabled = true,
+        },
+      },
+      lsp = {
+        enabled = true,
+        actions = true,
+        completion = true,
+        hover = true,
+      },
     },
   },
   {
