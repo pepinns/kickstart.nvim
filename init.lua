@@ -1279,6 +1279,16 @@ require('lazy').setup({
   --     --  Check out: https://github.com/echasnovski/mini.nvim
   --   end,
   -- },
+  {
+    'echasnovski/mini.indentscope',
+    version = '*',
+    opts = {
+      symbol = '│',
+    },
+  },
+  {
+    'echasnovski/mini.icons',
+  },
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
