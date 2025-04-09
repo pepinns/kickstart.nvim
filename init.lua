@@ -608,7 +608,6 @@ require('lazy').setup({
       --
       -- If you're wondering about lsp vs treesitter, you can check out the wonderfully
       -- and elegantly composed help section, `:help lsp-vs-treesitter`
-                vim.print('configuring lspconfig')
 
       --  This function gets run when an LSP attaches to a particular buffer.
       --    That is to say, every time a new file is opened that is associated with
@@ -617,7 +616,6 @@ require('lazy').setup({
       vim.api.nvim_create_autocmd('LspAttach', {
         group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
         callback = function(event)
-                vim.print('LspAttach called')
           -- NOTE: Remember that Lua is a real programming language, and as such it is possible
           -- to define small helper and utility functions so you don't have to repeat yourself.
           --
@@ -775,10 +773,18 @@ require('lazy').setup({
           diagnostic_signs[vim.diagnostic.severity[type]] = icon
         end
         vim.diagnostic.config {
-          virtual_text = { severity = {
-            vim.diagnostic.severity.ERROR,
-            vim.diagnostic.severity.WARN,
-          } },
+          virtual_text = {
+            enabled = true,
+            severity = {
+              max = vim.diagnostic.severity.WARN,
+            },
+          },
+          virtual_lines = {
+            enabled = true,
+            severity = {
+              min = vim.diagnostic.severity.ERROR,
+            },
+          },
           signs = { text = diagnostic_signs },
         }
       end
@@ -789,7 +795,7 @@ require('lazy').setup({
       --  So, we create new capabilities with nvim cmp, and then broadcast that to the servers.
       local capabilities = vim.lsp.protocol.make_client_capabilities()
       -- capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
-      capabilities = vim.tbl_deep_extend("force", capabilities, require("blink-cmp").get_lsp_capabilities())
+      capabilities = vim.tbl_deep_extend('force', capabilities, require('blink-cmp').get_lsp_capabilities())
 
       -- Enable the following language servers
       --  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
@@ -970,25 +976,25 @@ require('lazy').setup({
     },
   },
   { -- optional blink completion source for require statements and module annotations
-    "saghen/blink.cmp",
-    version = "*",
+    'saghen/blink.cmp',
+    version = '*',
     -- build = "cargo build --release",
     opts_extend = {
-      "sources.completion.enabled_providers",
-      "sources.compat",
-      "sources.default",
+      'sources.completion.enabled_providers',
+      'sources.compat',
+      'sources.default',
     },
     dependencies = {
-      "rafamadriz/friendly-snippets",
+      'rafamadriz/friendly-snippets',
       -- add blink.compat to dependencies
       {
-        "saghen/blink.compat",
+        'saghen/blink.compat',
         optional = true, -- make optional so it's only enabled if any extras need it
         opts = {},
-        version = "*",
+        version = '*',
       },
     },
-    event = "InsertEnter",
+    event = 'InsertEnter',
     opts = {
       appearance = {
         -- sets the fallback highlight groups to nvim-cmp's highlight groups
@@ -997,7 +1003,7 @@ require('lazy').setup({
         use_nvim_cmp_as_default = false,
         -- set to 'mono' for 'Nerd Font Mono' or 'normal' for 'Nerd Font'
         -- adjusts spacing to ensure icons are aligned
-        nerd_font_variant = "mono",
+        nerd_font_variant = 'mono',
       },
       completion = {
         trigger = {
@@ -1006,10 +1012,10 @@ require('lazy').setup({
         list = {
           selection = {
             preselect = function(ctx)
-              return ctx.mode ~= "cmdline" --and not require("blink.cmp").snippet_active({ direction = 1 })
+              return ctx.mode ~= 'cmdline' --and not require("blink.cmp").snippet_active({ direction = 1 })
             end,
             auto_insert = function(ctx)
-              return ctx.mode ~= "cmdline"
+              return ctx.mode ~= 'cmdline'
             end,
           },
         },
@@ -1022,10 +1028,10 @@ require('lazy').setup({
         menu = {
           auto_show = true,
           draw = {
-            treesitter = { "lsp" },
+            treesitter = { 'lsp' },
             columns = {
               -- { "kind_icon", "label", "label_description", gap = 1 },
-              { "kind_icon", "label", gap = 1 },
+              { 'kind_icon', 'label', gap = 1 },
             },
           },
         },
@@ -1033,7 +1039,7 @@ require('lazy').setup({
           auto_show = true,
           auto_show_delay_ms = 200,
           treesitter_highlighting = true,
-          window = { border = "rounded" },
+          window = { border = 'rounded' },
         },
         ghost_text = {
           enabled = false,
@@ -1041,15 +1047,15 @@ require('lazy').setup({
       },
       signature = {
         enabled = true,
-        window = { border = "rounded" },
+        window = { border = 'rounded' },
       },
       sources = {
         -- add lazydev to your completion providers
-        default = { "lazydev", "lsp", "path", "snippets", "buffer" },
+        default = { 'lazydev', 'lsp', 'path', 'snippets', 'buffer' },
         providers = {
           lazydev = {
-            name = "LazyDev",
-            module = "lazydev.integrations.blink",
+            name = 'LazyDev',
+            module = 'lazydev.integrations.blink',
             -- make lazydev completions top priority (see `:h blink.cmp`)
             score_offset = 100,
           },
@@ -1064,12 +1070,12 @@ require('lazy').setup({
         },
       },
       keymap = {
-        preset = "enter",
-        ["<C-y>"] = { "select_and_accept" },
+        preset = 'enter',
+        ['<C-y>'] = { 'select_and_accept' },
       },
     },
     config = function(_, opts)
-      require("blink.cmp").setup(opts)
+      require('blink.cmp').setup(opts)
     end,
   },
 
@@ -1369,8 +1375,8 @@ map('n', '<leader>xl', vim.diagnostic.open_float, { desc = 'Open line diagnostic
 -- map({ 'n', 'v' }, ']]', '<cmd>Telescope quickfix<cr>', { desc = 'next quickfix' })
 -- map({ 'n', 'v' }, '[[', '<cmd>lprev<cr>', { desc = 'prev quickfix' })
 
-map('n', '<leader>qq', '<cmd>qall!<cr><esc>', { desc = 'Quit' })
-map('n', '<C-q>', '<cmd>qall!<cr><esc>', { desc = 'Quit' })
+map('n', '<leader>qa', '<cmd>qall<cr><esc>', { desc = 'Quit' })
+map('n', '<C-q>', '<cmd>q<cr><esc>', { desc = 'Quit' })
 map('n', '<leader>fs', '<cmd>w<cr><esc>', { desc = 'Save File' })
 map('n', '<C-s>', '<cmd>w<cr><esc>', { desc = 'Save File' })
 map('v', 'Y', '"*y', { desc = 'Copy to System Clipboard [ "*y ]', remap = false })
