@@ -26,29 +26,18 @@ vim.opt.shiftwidth = 4
 vim.opt.expandtab = true
 
 -- [[ Setting options ]]
--- See `:help vim.opt`
--- NOTE: You can change these options as you wish!
---  For more options, you can see `:help option-list`
 
 -- Make line numbers default
 vim.opt.number = true
--- You can also add relative line numbers, to help with jumping.
---  Experiment for yourself to see if you like it!
--- vim.opt.relativenumber = true
 
 -- Enable mouse mode, can be useful for resizing splits for example!
 vim.opt.mouse = 'a'
 
--- Don't show the mode, since it's already in the status line
-vim.opt.showmode = false
-
--- Sync clipboard between OS and Neovim.
---  Schedule the setting after `UiEnter` because it can increase startup-time.
---  Remove this option if you want your OS clipboard to remain independent.
---  See `:help 'clipboard'`
--- vim.schedule(function()
---   vim.opt.clipboard = 'unnamedplus'
--- end)
+vim.o.foldmethod = 'expr'
+vim.o.foldexpr = 'v:lua.vim.lsp.foldexpr()'
+vim.o.foldtext = 'v:lua.vim.lsp.foldtext()'
+vim.o.foldlevel = 99
+vim.o.foldnestmax = 2
 
 -- Enable break indent
 vim.opt.breakindent = true
@@ -1388,7 +1377,7 @@ map('n', '<leader>xl', vim.diagnostic.open_float, { desc = 'Open line diagnostic
 map('n', '<leader>qa', '<cmd>qall<cr><esc>', { desc = 'Quit' })
 map('n', '<C-q>', '<cmd>q<cr><esc>', { desc = 'Quit' })
 map('n', '<leader>fs', '<cmd>w<cr><esc>', { desc = 'Save File' })
-map('n', '<C-s>', '<cmd>w<cr><esc>', { desc = 'Save File' })
+map('niv', '<C-s>', '<cmd>w<cr><esc>', { desc = 'Save File' })
 map('v', 'Y', '"*y', { desc = 'Copy to System Clipboard [ "*y ]', remap = false })
 -- Windows
 --  See `:help wincmd` for a list of all window commands

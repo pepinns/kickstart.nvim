@@ -10,6 +10,7 @@ return {
     -- "echasnovski/mini.pick",         -- optional
   },
   config = {
+    disable_signs = true,
     mappings = {
       popup = {
         ['p'] = 'PushPopup',
