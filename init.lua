@@ -292,6 +292,20 @@ require('lazy').setup({
         desc = 'Format',
       },
       {
+        '<localleader>fm',
+        function()
+          find_file_from_here 'mod.rs'
+        end,
+        desc = 'Open mod.rs',
+      },
+      {
+        '<localleader>fl',
+        function()
+          find_file_from_here 'lib.rs'
+        end,
+        desc = 'Open lib.rs',
+      },
+      {
         '<localleader>cc',
         function()
           find_file_from_here 'Cargo.toml'
@@ -1377,7 +1391,7 @@ map('n', '<leader>xl', vim.diagnostic.open_float, { desc = 'Open line diagnostic
 map('n', '<leader>qa', '<cmd>qall<cr><esc>', { desc = 'Quit' })
 map('n', '<C-q>', '<cmd>q<cr><esc>', { desc = 'Quit' })
 map('n', '<leader>fs', '<cmd>w<cr><esc>', { desc = 'Save File' })
-map('niv', '<C-s>', '<cmd>w<cr><esc>', { desc = 'Save File' })
+map({ 'n', 'i', 'v' }, '<C-s>', '<cmd>w<cr><esc>', { desc = 'Save File' })
 map('v', 'Y', '"*y', { desc = 'Copy to System Clipboard [ "*y ]', remap = false })
 -- Windows
 --  See `:help wincmd` for a list of all window commands

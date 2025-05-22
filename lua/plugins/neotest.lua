@@ -112,7 +112,8 @@ return {
     ft = { 'rust', 'c', 'c++' },
     config = function()
       require('mason-tool-installer').setup { ensure_installed = { 'codelldb' } }
-      local package_path = require('mason-registry').get_package('codelldb'):get_install_path()
+      -- local package_path = require('mason-registry').get_package('codelldb'):get_install_path()
+      local package_path = '/home/jpepin/.local/share/kickstart.nvim/mason/packages/codelldb'
       local codelldb_path = package_path .. '/extension/adapter/codelldb'
       local library_path = package_path .. '/extension/lldb/lib/liblldb.dylib'
       local uname = io.popen('uname'):read '*l'
