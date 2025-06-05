@@ -988,6 +988,7 @@ require('lazy').setup({
       'sources.default',
     },
     dependencies = {
+      'fang2hou/blink-copilot',
       'rafamadriz/friendly-snippets',
       -- add blink.compat to dependencies
       {
@@ -1054,22 +1055,29 @@ require('lazy').setup({
       },
       sources = {
         -- add lazydev to your completion providers
-        default = { 'lazydev', 'lsp', 'path', 'snippets', 'buffer' },
+        -- default = { 'lazydev', 'lsp', "copilot", 'path', 'snippets', 'buffer' },
+        default = { 'copilot' },
         providers = {
-          lazydev = {
-            name = 'LazyDev',
-            module = 'lazydev.integrations.blink',
-            -- make lazydev completions top priority (see `:h blink.cmp`)
+          copilot = {
+            name = 'copilot',
+            module = 'blink-copilot',
             score_offset = 100,
+            async = true,
           },
-          lsp = {
-            min_keyword_length = 0,
-            score_offset = 100,
-          },
-          snippets = {
-            min_keyword_length = 2,
-            score_offset = 0,
-          },
+          -- lazydev = {
+          --   name = 'LazyDev',
+          --   module = 'lazydev.integrations.blink',
+          --   -- make lazydev completions top priority (see `:h blink.cmp`)
+          --   score_offset = 100,
+          -- },
+          -- lsp = {
+          --   min_keyword_length = 0,
+          --   score_offset = 100,
+          -- },
+          -- snippets = {
+          --   min_keyword_length = 2,
+          --   score_offset = 0,
+          -- },
         },
       },
       keymap = {
