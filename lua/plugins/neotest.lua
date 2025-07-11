@@ -2,7 +2,7 @@ return {
 
   {
     'nvim-neotest/neotest',
-    dir = '/home/jpepin/pjs/neotest',
+    dir = '~/pjs/neotest',
     dependencies = {
       'nvim-neotest/nvim-nio',
       'nvim-lua/plenary.nvim',
