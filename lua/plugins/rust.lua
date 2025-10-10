@@ -18,6 +18,16 @@ return {
           -- mason_install = true,
           settings = {
             ['rust-analyzer'] = {
+              mason_install = false,
+              cmd = { os.getenv 'HOME' .. '/.cargo/bin/rust-analyzer' },
+              cargo = {
+                allFeatures = true,
+                features = 'all',
+              },
+              checkOnSave = true,
+              --   command = 'check', -- or "check"
+              --   extraArgs = { '--all-features', '--tests' },
+              -- },
               diagnostics = {
                 enable = true,
                 disabled = { 'unresolved-proc-macro', 'unresolved-macro-call', 'proc-macro-disabled' },
@@ -54,10 +64,10 @@ return {
                 },
               },
               procMacro = {
-                -- enable = true,
-                -- attributes = {
-                --   enable = true,
-                -- },
+                enable = true,
+                attributes = {
+                  enable = true,
+                },
                 ignored = {
                   ['async-trait'] = { 'async_trait' },
                   ['googletest'] = { 'gtest', 'test' },
@@ -70,9 +80,9 @@ return {
       },
     },
   },
-   {
-    "Saecki/crates.nvim",
-    event = { "BufRead Cargo.toml" },
+  {
+    'Saecki/crates.nvim',
+    event = { 'BufRead Cargo.toml' },
     opts = {
       completion = {
         crates = {

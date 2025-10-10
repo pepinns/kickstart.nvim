@@ -38,7 +38,6 @@ return {
         desc = 'Copilot Accept Line',
       },
     },
-    build = 'make tiktoken', -- Only on MacOS or Linux
     opts = {
       -- See Configuration section for options
     },

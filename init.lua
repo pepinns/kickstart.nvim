@@ -815,8 +815,22 @@ require('lazy').setup({
         -- pyright = {},
         -- https://github.com/rust-lang/rust-analyzer/blob/master/crates/rust-analyzer/src/config.rs#L548
         rust_analyzer = {
+          capabilities = {
+            offsetEncoding = { 'utf-16' },
+          },
           settings = {
             ['rust-analyzer'] = {
+              mason_install = false,
+              cmd = { os.getenv 'HOME' .. '/.cargo/bin/rust-analyzer' },
+              cargo = {
+                allFeatures = true,
+                features = 'all',
+              },
+              checkOnSave = true,
+              -- checkOnSave = {
+              --   command = 'check', -- or "check"
+              --   extraArgs = { '--all-features', '--tests' },
+              -- },
               diagnostics = {
                 enable = true,
                 disabled = { 'unresolved-proc-macro', 'unresolved-macro-call', 'proc-macro-disabled' },
@@ -853,10 +867,10 @@ require('lazy').setup({
                 },
               },
               procMacro = {
-                -- enable = true,
-                -- attributes = {
-                --   enable = true,
-                -- },
+                enable = true,
+                attributes = {
+                  enable = true,
+                },
                 ignored = {
                   ['async-trait'] = { 'async_trait' },
                   ['googletest'] = { 'gtest', 'test' },
@@ -908,6 +922,8 @@ require('lazy').setup({
       for server in pairs(opts.servers) do
         if opts.servers[server].mason_install then
           table.insert(ensure_installed, server)
+        else
+          require('lspconfig')[server].setup(opts.servers[server] or {})
         end
       end
       vim.list_extend(ensure_installed, {
@@ -1055,29 +1071,29 @@ require('lazy').setup({
       },
       sources = {
         -- add lazydev to your completion providers
-        -- default = { 'lazydev', 'lsp', "copilot", 'path', 'snippets', 'buffer' },
-        default = { 'copilot' },
+        default = { 'lazydev', 'lsp', 'copilot', 'path', 'snippets', 'buffer' },
+        -- default = { 'copilot' },
         providers = {
           copilot = {
             name = 'copilot',
             module = 'blink-copilot',
-            score_offset = 100,
+            score_offset = 50,
             async = true,
           },
-          -- lazydev = {
-          --   name = 'LazyDev',
-          --   module = 'lazydev.integrations.blink',
-          --   -- make lazydev completions top priority (see `:h blink.cmp`)
-          --   score_offset = 100,
-          -- },
-          -- lsp = {
-          --   min_keyword_length = 0,
-          --   score_offset = 100,
-          -- },
-          -- snippets = {
-          --   min_keyword_length = 2,
-          --   score_offset = 0,
-          -- },
+          lazydev = {
+            name = 'LazyDev',
+            module = 'lazydev.integrations.blink',
+            -- make lazydev completions top priority (see `:h blink.cmp`)
+            score_offset = 100,
+          },
+          lsp = {
+            min_keyword_length = 0,
+            score_offset = 100,
+          },
+          snippets = {
+            min_keyword_length = 2,
+            score_offset = 0,
+          },
         },
       },
       keymap = {
