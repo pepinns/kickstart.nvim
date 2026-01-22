@@ -907,6 +907,9 @@ require('lazy').setup({
         },
       }
 
+      -- Merge the servers defined in init.lua with those from plugin-specific opts
+      opts.servers = vim.tbl_deep_extend('force', {}, servers, opts.servers or {})
+
       -- Ensure the servers and tools above are installed
       --
       -- To check the current status of installed tools and/or manually install
