@@ -811,17 +811,19 @@ require('lazy').setup({
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
         -- clangd = {},
-        gopls = {},
+        gopls = {
+          mason_install = true,
+        },
         -- pyright = {},
         -- https://github.com/rust-lang/rust-analyzer/blob/master/crates/rust-analyzer/src/config.rs#L548
         rust_analyzer = {
+          mason_install = false,
+          cmd = { os.getenv 'HOME' .. '/.cargo/bin/rust-analyzer' },
           capabilities = {
             offsetEncoding = { 'utf-16' },
           },
           settings = {
             ['rust-analyzer'] = {
-              mason_install = false,
-              cmd = { os.getenv 'HOME' .. '/.cargo/bin/rust-analyzer' },
               cargo = {
                 allFeatures = true,
                 features = 'all',
@@ -918,37 +920,34 @@ require('lazy').setup({
       --
       -- You can add other tools here that you want Mason to install
       -- for you, so that they are available from within Neovim.
-      local ensure_installed = {} --vim.tbl_keys(servers or {})
+      
+      -- Configure global LSP settings that apply to all servers
+      vim.lsp.config('*', {
+        capabilities = capabilities,
+      })
+      
+      -- Configure each server and enable it using the new vim.lsp.config API
+      for server_name, server in pairs(opts.servers) do
+        -- Merge server-specific capabilities with global capabilities
+        local server_config = vim.tbl_deep_extend('force', {}, server, {
+          capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {}),
+        })
+        
+        vim.lsp.config(server_name, server_config)
+        vim.lsp.enable(server_name)
+      end
+      
+      -- Setup mason to install the servers
+      local ensure_installed = {}
       for server in pairs(opts.servers) do
-        if opts.servers[server].mason_install then
+        if opts.servers[server].mason_install ~= false then
           table.insert(ensure_installed, server)
-        else
-          require('lspconfig')[server].setup(opts.servers[server] or {})
         end
       end
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
-
-      require('mason-lspconfig').setup {
-        handlers = {
-          function(server_name)
-            local server = opts.servers[server_name] or {}
-            -- This handles overriding only values explicitly passed
-            -- by the server configuration above. Useful when disabling
-            -- certain features of an LSP (for example, turning off formatting for ts_ls)
-            server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-            require('lspconfig')[server_name].setup(server)
-          end,
-        },
-      }
-      -- I don't know why but when I try to do this without the mason-lspconfig above, it doesn't seem to pass the settigns properly
-      -- lconfig = require('lspconfig')
-      -- for server_name, server in pairs(opts.servers) do
-      --   server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-      --   lconfig[server_name].setup{server}
-      -- end
     end,
   },
 
