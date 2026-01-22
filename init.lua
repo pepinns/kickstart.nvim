@@ -930,26 +930,26 @@ require('lazy').setup({
       })
       
       -- Configure each server and enable it using the new vim.lsp.config API
-      for server_name, server in pairs(opts.servers) do
-        -- Extract mason_install flag and remove it from the server config
-        local mason_install = server.mason_install
-        
+      for server_name, server_config in pairs(opts.servers) do
         -- Create a clean server config without mason-specific fields
-        local server_config = vim.tbl_deep_extend('force', {}, server)
-        server_config.mason_install = nil
+        local lsp_config = vim.tbl_deep_extend('force', {}, server_config)
+        lsp_config.mason_install = nil
         
         -- Merge server-specific capabilities with global capabilities
-        server_config.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server_config.capabilities or {})
+        -- This is needed for servers that define specific capability overrides
+        if lsp_config.capabilities then
+          lsp_config.capabilities = vim.tbl_deep_extend('force', {}, capabilities, lsp_config.capabilities)
+        end
         
-        vim.lsp.config(server_name, server_config)
+        vim.lsp.config(server_name, lsp_config)
         vim.lsp.enable(server_name)
       end
       
       -- Setup mason to install the servers
       local ensure_installed = {}
-      for server in pairs(opts.servers) do
-        if opts.servers[server].mason_install == true then
-          table.insert(ensure_installed, server)
+      for server_name, server_config in pairs(opts.servers) do
+        if server_config.mason_install == true then
+          table.insert(ensure_installed, server_name)
         end
       end
       vim.list_extend(ensure_installed, {
