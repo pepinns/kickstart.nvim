@@ -881,10 +881,16 @@ require('lazy').setup({
         rust_analyzer = { 'rust' },
       }
       
-      -- Track which servers have been enabled to avoid duplicate autocommands
-      local enabled_servers = {}
+      -- Track which servers have been enabled to avoid duplicates (persistent across potential reloads)
+      if not _G.kickstart_lsp_enabled_servers then
+        _G.kickstart_lsp_enabled_servers = {}
+      end
+      local enabled_servers = _G.kickstart_lsp_enabled_servers
       
-      -- Helper function to enable a server and install it via Mason if needed
+      -- Track servers to install via Mason
+      local servers_to_install = {}
+      
+      -- Helper function to enable a server and mark it for Mason installation if needed
       local function enable_and_install_server(server)
         if enabled_servers[server] then
           return
@@ -893,43 +899,56 @@ require('lazy').setup({
         vim.lsp.enable(server)
         enabled_servers[server] = true
         
-        -- Install via Mason when the filetype is first opened
+        -- Mark for Mason installation if needed
         if opts.servers[server] and opts.servers[server].mason_install == true then
-          require('mason-tool-installer').setup {
-            ensure_installed = { server },
-            auto_update = false,
-            run_on_start = true,
-          }
+          table.insert(servers_to_install, server)
         end
       end
       
       for server, filetypes in pairs(server_filetypes) do
-        if opts.servers[server] then
+        if opts.servers[server] and not enabled_servers[server] then
           -- Check if any buffer with this filetype is already open
+          local found = false
           for _, buf in ipairs(vim.api.nvim_list_bufs()) do
             if vim.api.nvim_buf_is_loaded(buf) then
               local buf_ft = vim.api.nvim_get_option_value('filetype', { buf = buf })
               for _, ft in ipairs(filetypes) do
                 if buf_ft == ft then
                   enable_and_install_server(server)
+                  found = true
                   break
                 end
+              end
+              if found then
+                break
               end
             end
           end
           
-          -- Set up autocommand for future filetypes
-          vim.api.nvim_create_autocmd('FileType', {
-            pattern = filetypes,
-            callback = function()
-              enable_and_install_server(server)
-            end,
-          })
+          -- Set up autocommand for future filetypes (only if not already enabled)
+          if not enabled_servers[server] then
+            vim.api.nvim_create_autocmd('FileType', {
+              pattern = filetypes,
+              callback = function()
+                enable_and_install_server(server)
+              end,
+              once = true,
+            })
+          end
         end
       end
       
-      -- Setup mason to install the servers that are NOT filetype-specific
-      -- (only lua_ls in this config, which should be available immediately)
+      -- Install all filetype-specific servers that were enabled
+      if #servers_to_install > 0 then
+        require('mason-tool-installer').setup {
+          ensure_installed = servers_to_install,
+          auto_update = false,
+          run_on_start = true,
+        }
+      end
+      
+      -- Setup mason to install servers that should be available immediately
+      -- (e.g., lua_ls for Neovim config files, and any other non-filetype-specific servers)
       local ensure_installed = {}
       for server_name, server_config in pairs(opts.servers) do
         -- Only install immediately if not in the filetype-specific list
