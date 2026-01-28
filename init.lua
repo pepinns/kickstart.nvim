@@ -811,85 +811,9 @@ require('lazy').setup({
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
         -- clangd = {},
-        gopls = {
-          mason_install = true,
-        },
+        -- gopls = {},  -- Defined in lua/plugins/go.lua
         -- pyright = {},
-        -- https://github.com/rust-lang/rust-analyzer/blob/master/crates/rust-analyzer/src/config.rs#L548
-        rust_analyzer = {
-          mason_install = false,
-          cmd = { os.getenv 'HOME' .. '/.cargo/bin/rust-analyzer' },
-          capabilities = {
-            offsetEncoding = { 'utf-16' },
-          },
-          settings = {
-            ['rust-analyzer'] = {
-              cargo = {
-                allFeatures = true,
-                features = 'all',
-              },
-              checkOnSave = true,
-              -- checkOnSave = {
-              --   command = 'check', -- or "check"
-              --   extraArgs = { '--all-features', '--tests' },
-              -- },
-              diagnostics = {
-                enable = true,
-                disabled = { 'unresolved-proc-macro', 'unresolved-macro-call', 'proc-macro-disabled' },
-              },
-              typing = {
-                triggerChars = '=.{><',
-              },
-              hover = {
-                maxSubstitutionLength = 200,
-                show = {
-                  fields = 20,
-                  enumVariants = 20,
-                  traitAssocItems = 20,
-                },
-              },
-
-              semanticHighlighting = {
-                punctuation = {
-                  enable = true,
-                  specialization = {
-                    enable = true,
-                  },
-                  separate = {
-                    macro = {
-                      bang = true,
-                    },
-                  },
-                },
-                operator = {
-                  enable = true,
-                  specialization = {
-                    enable = true,
-                  },
-                },
-              },
-              procMacro = {
-                enable = true,
-                attributes = {
-                  enable = true,
-                },
-                ignored = {
-                  ['async-trait'] = { 'async_trait' },
-                  ['googletest'] = { 'gtest', 'test' },
-                  ['rstest'] = { 'rstest', 'awt' },
-                },
-              },
-            },
-          },
-        },
-        -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
-        --
-        -- Some languages (like typescript) have entire language plugins that can be useful:
-        --    https://github.com/pmizio/typescript-tools.nvim
-        --
-        -- But for many setups, the LSP (`ts_ls`) will work just fine
-        -- ts_ls = {},
-        --
+        -- rust_analyzer = {},  -- Defined in lua/plugins/rust.lua
 
         lua_ls = {
           -- cmd = { ... },
@@ -929,7 +853,9 @@ require('lazy').setup({
         capabilities = capabilities,
       })
       
-      -- Configure each server and enable it using the new vim.lsp.config API
+      -- Configure each server using the new vim.lsp.config API
+      -- Note: We only register configs here, not enable them
+      -- Servers defined with `ft` in plugin specs will be enabled when those filetypes are loaded
       for server_name, server_config in pairs(opts.servers) do
         -- Create a clean server config without mason-specific fields
         local lsp_config = vim.tbl_deep_extend('force', {}, server_config)
@@ -942,8 +868,10 @@ require('lazy').setup({
         end
         
         vim.lsp.config(server_name, lsp_config)
-        vim.lsp.enable(server_name)
       end
+      
+      -- Enable lua_ls for Lua files (used for Neovim config)
+      vim.lsp.enable('lua_ls')
       
       -- Setup mason to install the servers
       local ensure_installed = {}
