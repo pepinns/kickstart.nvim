@@ -11,9 +11,5 @@ return {
         },
       },
     },
-    config = function()
-      -- Enable pyright only when Python files are opened
-      vim.lsp.enable('pyright')
-    end,
   },
 }

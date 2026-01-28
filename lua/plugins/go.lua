@@ -5,17 +5,12 @@ return {
     ft = { 'go' },
     opts = {
       servers = {
-        -- https://github.com/rust-lang/rust-analyzer/blob/master/crates/rust-analyzer/src/config.rs#L548
         gopls = {
           mason_install = true,
           settings = {},
         },
       },
     },
-    config = function()
-      -- Enable gopls only when Go files are opened
-      vim.lsp.enable('gopls')
-    end,
   },
   {
     'fredrikaverpil/neotest-golang',

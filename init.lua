@@ -873,6 +873,26 @@ require('lazy').setup({
       -- Enable lua_ls for Lua files (used for Neovim config)
       vim.lsp.enable('lua_ls')
       
+      -- Create autocommands to enable language-specific servers when their filetypes are opened
+      -- This ensures servers only start when needed, not globally
+      local server_filetypes = {
+        gopls = { 'go' },
+        pyright = { 'python' },
+        rust_analyzer = { 'rust' },
+      }
+      
+      for server, filetypes in pairs(server_filetypes) do
+        if opts.servers[server] then
+          vim.api.nvim_create_autocmd('FileType', {
+            pattern = filetypes,
+            callback = function()
+              vim.lsp.enable(server)
+            end,
+            once = true, -- Only enable once per session
+          })
+        end
+      end
+      
       -- Setup mason to install the servers
       local ensure_installed = {}
       for server_name, server_config in pairs(opts.servers) do

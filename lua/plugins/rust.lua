@@ -78,10 +78,6 @@ return {
         },
       },
     },
-    config = function()
-      -- Enable rust-analyzer only when Rust files are opened
-      vim.lsp.enable('rust_analyzer')
-    end,
   },
   {
     'Saecki/crates.nvim',
