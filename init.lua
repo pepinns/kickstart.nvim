@@ -875,11 +875,6 @@ require('lazy').setup({
       
       -- Create autocommands to enable language-specific servers when their filetypes are opened
       -- This ensures servers only start when needed, not globally
-      local server_filetypes = {
-        gopls = { 'go' },
-        pyright = { 'python' },
-        rust_analyzer = { 'rust' },
-      }
       
       -- Track which servers have been enabled to avoid duplicates (persistent across potential reloads)
       if not _G.kickstart_lsp_enabled_servers then
@@ -905,16 +900,18 @@ require('lazy').setup({
         end
       end
       
-      for server, filetypes in pairs(server_filetypes) do
-        if opts.servers[server] and not enabled_servers[server] then
+      -- Determine which servers should not be enabled immediately (filetype-specific)
+      -- We check which servers have filetypes defined and are not lua_ls (which should be enabled immediately)
+      for server_name, server_config in pairs(opts.servers) do
+        if server_name ~= 'lua_ls' and server_config.filetypes and not enabled_servers[server_name] then
           -- Check if any buffer with this filetype is already open
           local found = false
           for _, buf in ipairs(vim.api.nvim_list_bufs()) do
             if vim.api.nvim_buf_is_loaded(buf) then
               local buf_ft = vim.api.nvim_get_option_value('filetype', { buf = buf })
-              for _, ft in ipairs(filetypes) do
+              for _, ft in ipairs(server_config.filetypes) do
                 if buf_ft == ft then
-                  enable_and_install_server(server)
+                  enable_and_install_server(server_name)
                   found = true
                   break
                 end
@@ -926,11 +923,11 @@ require('lazy').setup({
           end
           
           -- Set up autocommand for future filetypes (only if not already enabled)
-          if not enabled_servers[server] then
+          if not enabled_servers[server_name] then
             vim.api.nvim_create_autocmd('FileType', {
-              pattern = filetypes,
+              pattern = server_config.filetypes,
               callback = function()
-                enable_and_install_server(server)
+                enable_and_install_server(server_name)
               end,
               once = true,
             })
@@ -951,8 +948,8 @@ require('lazy').setup({
       -- (e.g., lua_ls for Neovim config files, and any other non-filetype-specific servers)
       local ensure_installed = {}
       for server_name, server_config in pairs(opts.servers) do
-        -- Only install immediately if not in the filetype-specific list
-        local is_ft_specific = server_filetypes[server_name] ~= nil
+        -- Only install immediately if not filetype-specific (i.e., doesn't have filetypes defined or is lua_ls)
+        local is_ft_specific = server_config.filetypes and server_name ~= 'lua_ls'
         if server_config.mason_install == true and not is_ft_specific then
           table.insert(ensure_installed, server_name)
         end
