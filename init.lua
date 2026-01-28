@@ -881,22 +881,38 @@ require('lazy').setup({
         rust_analyzer = { 'rust' },
       }
       
+      -- Track which servers have been enabled to avoid duplicate autocommands
+      local enabled_servers = {}
+      
       for server, filetypes in pairs(server_filetypes) do
-        if opts.servers[server] then
+        if opts.servers[server] and not enabled_servers[server] then
           vim.api.nvim_create_autocmd('FileType', {
             pattern = filetypes,
             callback = function()
               vim.lsp.enable(server)
+              enabled_servers[server] = true
+              
+              -- Install via Mason when the filetype is first opened
+              if opts.servers[server].mason_install == true then
+                require('mason-tool-installer').setup {
+                  ensure_installed = { server },
+                  auto_update = false,
+                  run_on_start = true,
+                }
+              end
             end,
             once = true, -- Only enable once per session
           })
         end
       end
       
-      -- Setup mason to install the servers
+      -- Setup mason to install the servers that are NOT filetype-specific
+      -- (only lua_ls in this config, which should be available immediately)
       local ensure_installed = {}
       for server_name, server_config in pairs(opts.servers) do
-        if server_config.mason_install == true then
+        -- Only install immediately if not in the filetype-specific list
+        local is_ft_specific = server_filetypes[server_name] ~= nil
+        if server_config.mason_install == true and not is_ft_specific then
           table.insert(ensure_installed, server_name)
         end
       end
