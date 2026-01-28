@@ -17,6 +17,7 @@ return {
         rust_analyzer = {
           mason_install = false,
           cmd = { os.getenv 'HOME' .. '/.cargo/bin/rust-analyzer' },
+          filetypes = { 'rust' },
           settings = {
             ['rust-analyzer'] = {
               cargo = {

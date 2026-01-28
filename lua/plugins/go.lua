@@ -7,6 +7,7 @@ return {
       servers = {
         gopls = {
           mason_install = true,
+          filetypes = { 'go', 'gomod', 'gowork', 'gotmpl' },
           settings = {},
         },
       },

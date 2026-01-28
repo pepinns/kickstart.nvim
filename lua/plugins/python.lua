@@ -7,6 +7,7 @@ return {
       servers = {
         pyright = {
           mason_install = true,
+          filetypes = { 'python' },
           settings = {},
         },
       },
