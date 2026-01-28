@@ -884,24 +884,46 @@ require('lazy').setup({
       -- Track which servers have been enabled to avoid duplicate autocommands
       local enabled_servers = {}
       
+      -- Helper function to enable a server and install it via Mason if needed
+      local function enable_and_install_server(server)
+        if enabled_servers[server] then
+          return
+        end
+        
+        vim.lsp.enable(server)
+        enabled_servers[server] = true
+        
+        -- Install via Mason when the filetype is first opened
+        if opts.servers[server] and opts.servers[server].mason_install == true then
+          require('mason-tool-installer').setup {
+            ensure_installed = { server },
+            auto_update = false,
+            run_on_start = true,
+          }
+        end
+      end
+      
       for server, filetypes in pairs(server_filetypes) do
-        if opts.servers[server] and not enabled_servers[server] then
+        if opts.servers[server] then
+          -- Check if any buffer with this filetype is already open
+          for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+            if vim.api.nvim_buf_is_loaded(buf) then
+              local buf_ft = vim.api.nvim_get_option_value('filetype', { buf = buf })
+              for _, ft in ipairs(filetypes) do
+                if buf_ft == ft then
+                  enable_and_install_server(server)
+                  break
+                end
+              end
+            end
+          end
+          
+          -- Set up autocommand for future filetypes
           vim.api.nvim_create_autocmd('FileType', {
             pattern = filetypes,
             callback = function()
-              vim.lsp.enable(server)
-              enabled_servers[server] = true
-              
-              -- Install via Mason when the filetype is first opened
-              if opts.servers[server].mason_install == true then
-                require('mason-tool-installer').setup {
-                  ensure_installed = { server },
-                  auto_update = false,
-                  run_on_start = true,
-                }
-              end
+              enable_and_install_server(server)
             end,
-            once = true, -- Only enable once per session
           })
         end
       end
