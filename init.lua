@@ -1468,8 +1468,11 @@ require('lazy').setup({
     build = ':TSUpdate',
     opts = function(_, opts)
       -- Ensure opts is a table
+      opts = opts or {}
       opts.ensure_installed = opts.ensure_installed or {}
-      opts.auto_install = opts.auto_install or true
+      if opts.auto_install == nil then
+        opts.auto_install = true
+      end
       opts.highlight = opts.highlight or {}
       opts.indent = opts.indent or {}
       
@@ -1489,8 +1492,7 @@ require('lazy').setup({
     config = function(_, opts)
       -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
       
-      -- Safely require and setup treesitter
-      -- The opts function above ensures we have proper defaults
+      -- Setup treesitter with the configuration from opts
       require('nvim-treesitter.configs').setup(opts)
     end,
     -- There are additional nvim-treesitter modules that you can use to interact
