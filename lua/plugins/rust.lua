@@ -24,10 +24,12 @@ return {
                 allFeatures = true,
                 features = 'all',
               },
-              checkOnSave = true,
-              --   command = 'check', -- or "check"
-              --   extraArgs = { '--all-features', '--tests' },
-              -- },
+              checkOnSave = {
+                enable = true,
+                command = 'check',
+                extraArgs = { '--all-features', '--tests' },
+                features = 'all',
+              },
               diagnostics = {
                 enable = true,
                 disabled = { 'unresolved-proc-macro', 'unresolved-macro-call', 'proc-macro-disabled' },
