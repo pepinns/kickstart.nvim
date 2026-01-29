@@ -1489,6 +1489,15 @@ require('lazy').setup({
       
       return opts
     end,
+    config = function(_, opts)
+      -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
+      
+      -- Safely setup treesitter - during fresh install, the module may not be available yet
+      local ok, ts_configs = pcall(require, 'nvim-treesitter.configs')
+      if ok then
+        ts_configs.setup(opts)
+      end
+    end,
     -- There are additional nvim-treesitter modules that you can use to interact
     -- with nvim-treesitter. You should go explore a few and see what interests you:
     --
