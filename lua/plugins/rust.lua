@@ -1,12 +1,4 @@
 return {
-  -- {
-  --     'williamboman/mason-lspconfig.nvim',
-  --     ft = 'rust',
-  --     config = function()
-  --         vim.print("In rust config")
-  --         require("lspconfig").rust_analyzer.setup {}
-  --     end
-  -- },
   {
     -- Main LSP Configuration
     'neovim/nvim-lspconfig',
