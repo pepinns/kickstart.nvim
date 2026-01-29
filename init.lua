@@ -1465,8 +1465,8 @@ require('lazy').setup({
     build = ':TSUpdate',
     config = function()
       -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
-      
-      -- Prefer loading this in a pcall to handle the case where nvim-treesitter is being installed
+
+      -- Use pcall to safely handle cases where nvim-treesitter is being installed
       local status_ok, treesitter_configs = pcall(require, 'nvim-treesitter.configs')
       if not status_ok then
         return
