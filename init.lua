@@ -814,7 +814,6 @@ require('lazy').setup({
         -- gopls = {},  -- Defined in lua/plugins/go.lua
         -- pyright = {},
         -- rust_analyzer = {},  -- Defined in lua/plugins/rust.lua
-
         lua_ls = {
           -- cmd = { ... },
           filetypes = { 'lua' },
@@ -1070,8 +1069,9 @@ require('lazy').setup({
           treesitter_highlighting = true,
           window = { border = 'rounded' },
         },
+        -- Ensure ghost text in blink is disabled so it doesn't fight gemini.nvim
         ghost_text = {
-          enabled = true,
+          enabled = false,
         },
       },
       signature = {
@@ -1079,8 +1079,11 @@ require('lazy').setup({
         window = { border = 'rounded' },
       },
       sources = {
+        per_filetype = {
+          codecompanion = { 'codecompanion' },
+        },
         -- add lazydev to your completion providers
-        default = { 'lazydev', 'lsp', 'copilot', 'path', 'snippets', 'buffer' },
+        default = { 'lazydev', 'lsp', 'codecompanion', 'copilot', 'path', 'snippets', 'buffer' },
         -- default = { 'copilot' },
         providers = {
           copilot = {
@@ -1108,12 +1111,144 @@ require('lazy').setup({
       keymap = {
         preset = 'enter',
         ['<C-y>'] = { 'select_and_accept' },
+        -- This allows you to manually dismiss the menu if it blocks your view
+        ['<C-e>'] = { 'hide', 'fallback' },
+        -- Logic: If blink menu is open, accept blink suggestion.
+        -- If not, let gemini.nvim handle the Tab.
+        ['<Tab>'] = {
+          function(cmp)
+            if cmp.is_visible() then
+              return cmp.select_and_accept()
+            end
+          end,
+          'fallback', -- This allows gemini.nvim to catch the Tab
+        },
       },
     },
     config = function(_, opts)
       require('blink.cmp').setup(opts)
     end,
   },
+  {
+    'olimorris/codecompanion.nvim',
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+      'nvim-treesitter/nvim-treesitter',
+    },
+    opts = {
+      interactions = {
+        chat = {
+          adapter = 'gemini',
+          model = 'gemini-2.0-flash',
+        },
+        inline = {
+          adapter = 'gemini',
+          model = 'gemini-2.0-flash',
+        },
+      },
+      -- NOTE: The log_level is in `opts.opts`
+      opts = {
+        log_level = 'DEBUG',
+      },
+    },
+  },
+  -- {
+  --   'kiddos/gemini.nvim',
+  --   opts = {
+  --     model_config = {
+  --       model_id = 'gemini-2.0-flash', -- Use the latest fast model
+  --     },
+  --   },
+  --   keys = {
+  --     {
+  --       '<localleader>gc', -- Your desired key sequence (e.g., <leader> + g + g)
+  --       function()
+  --         vim.ui.input({
+  --           prompt = 'Gemini Chat Prompt: ',
+  --           completion = 'file', -- Optional: provides file path completion
+  --           default = '', -- Optional: default text in the input box
+  --         }, function(input)
+  --           if input then
+  --             -- User entered something and pressed Enter
+  --             -- Call your GeminiChat function with the input
+  --             -- Make sure GeminiChat is available as a Vim function
+  --             vim.fn.GeminiChat(input)
+  --           else
+  --             -- User pressed Esc or cancelled the input
+  --             print 'Gemini Chat prompt cancelled.'
+  --           end
+  --         end)
+  --       end,
+  --       desc = 'Gemini Chat Prompt',
+  --     },
+  --   },
+  -- },
+
+  -- {
+  --   'kiddos/gemini.nvim',
+  --   keys = {
+  --     {
+  --       '<leader><leader>g', -- Your desired key sequence (e.g., <leader> + g + g)
+  --       function()
+  --         vim.ui.input({
+  --           prompt = 'Gemini Chat Prompt: ',
+  --           completion = 'file', -- Optional: provides file path completion
+  --           default = '', -- Optional: default text in the input box
+  --         }, function(input)
+  --           if input then
+  --             -- User entered something and pressed Enter
+  --             -- Call your GeminiChat function with the input
+  --             -- Make sure GeminiChat is available as a Vim function
+  --             vim.fn.GeminiChat(input)
+  --           else
+  --             -- User pressed Esc or cancelled the input
+  --             print 'Gemini Chat prompt cancelled.'
+  --           end
+  --         end)
+  --       end,
+  --       desc = 'Gemini Chat Prompt',
+  --     },
+  --   },
+  --   -- We use 'keys' to let Lazy.nvim handle the keybindings
+  --   -- keys = {
+  --   --   {
+  --   --     '<Tab>',
+  --   --     function()
+  --   --       require('gemini.hints').insert_hint()
+  --   --     end,
+  --   --     mode = 'i',
+  --   --     desc = 'Gemini Accept Hint',
+  --   --   },
+  --   --   {
+  --   --     '<C-Tab>',
+  --   --     function()
+  --   --       require('gemini.hints').insert_line()
+  --   --     end,
+  --   --     mode = 'i',
+  --   --     desc = 'Gemini Accept Line',
+  --   --   },
+  --   --   { "<leader>gc", "<cmd>GeminiChat<cr>", mode = { "n", "v" }, desc = "Gemini Chat" },
+  --   -- },
+  --   config = function()
+  --     require('gemini').setup {
+  --       -- API Key is usually read from os.getenv("GEMINI_API_KEY")
+  --       model_config = {
+  --         model_id = 'gemini-2.0-flash', -- Use the latest fast model
+  --       },
+  --       hints = {
+  --         enabled = true,
+  --         -- Customizing keymaps for ghost text
+  --         keymaps = {
+  --           accept = '<Tab>', -- Accept the whole suggestion
+  --           accept_line = '<S-Tab>', -- Accept only the next line
+  --           dismiss = '<C-e>', -- Clear the current suggestion
+  --         },
+  --         -- Adjust how long to wait after you stop typing to request a hint
+  --         debounce = 300,
+  --       },
+  --     }
+  --   end,
+  -- },
 
   -- { -- Autocompletion
   --   'hrsh7th/nvim-cmp',
