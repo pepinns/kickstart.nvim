@@ -112,9 +112,39 @@ return {
     ft = { 'rust', 'c', 'c++' },
     config = function()
       require('mason-tool-installer').setup { ensure_installed = { 'codelldb' } }
-      -- local package_path = require('mason-registry').get_package('codelldb'):get_install_path()
-      local package_path = '/home/jpepin/.local/share/nvim/mason/packages/codelldb'
+      
+      -- Check architecture for ARM-specific issues
+      local arch = io.popen('uname -m'):read '*l'
+      if arch == 'aarch64' or arch == 'arm64' then
+        vim.notify(
+          'codelldb from Mason does not support ARM Linux. ' ..
+          'Please install codelldb manually from: https://github.com/vadimcn/codelldb/releases ' ..
+          'and update the codelldb_path in this config file.',
+          vim.log.levels.WARN
+        )
+      end
+      
+      -- Use mason-registry to dynamically get the codelldb installation path
+      local mason_registry = require('mason-registry')
+      if not mason_registry.is_installed('codelldb') then
+        vim.notify('codelldb is not installed. Please run :MasonInstall codelldb or wait for mason-tool-installer to complete installation.', vim.log.levels.WARN)
+        return
+      end
+      
+      local package_path = mason_registry.get_package('codelldb'):get_install_path()
       local codelldb_path = package_path .. '/extension/adapter/codelldb'
+      
+      -- Verify the codelldb binary exists and is executable
+      if vim.fn.executable(codelldb_path) == 0 then
+        vim.notify(
+          'codelldb binary not found or not executable at: ' .. codelldb_path .. '\n' ..
+          'If you are on ARM Linux, Mason may not support your architecture. ' ..
+          'Please install codelldb manually from: https://github.com/vadimcn/codelldb/releases',
+          vim.log.levels.ERROR
+        )
+        return
+      end
+      
       local library_path = package_path .. '/extension/lldb/lib/liblldb.dylib'
       local uname = io.popen('uname'):read '*l'
       if uname == 'Linux' then
