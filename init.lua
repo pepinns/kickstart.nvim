@@ -680,9 +680,24 @@ require('lazy').setup({
               for line in exp:gmatch '[^\r\n]+' do
                 table.insert(lines, line)
               end
-              vim.api.nvim_buf_set_text(buf, 0, 0, 0, -1, exp)
+              vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+              
+              -- Configure floating window options
+              local width = math.floor(vim.o.columns * 0.8)
+              local height = math.floor(vim.o.lines * 0.8)
+              local opts = {
+                relative = 'editor',
+                width = width,
+                height = height,
+                col = math.floor((vim.o.columns - width) / 2),
+                row = math.floor((vim.o.lines - height) / 2),
+                style = 'minimal',
+                border = 'rounded',
+              }
+              
               local win = vim.api.nvim_open_win(buf, true, opts)
               vim.api.nvim_win_set_option(win, 'winblend', 15)
+              vim.api.nvim_buf_set_option(buf, 'filetype', 'rust')
 
               local function close_popup()
                 vim.api.nvim_win_close(win, true)
