@@ -696,8 +696,8 @@ require('lazy').setup({
               }
               
               local win = vim.api.nvim_open_win(buf, true, opts)
-              vim.api.nvim_win_set_option(win, 'winblend', 15)
-              vim.api.nvim_buf_set_option(buf, 'filetype', 'rust')
+              vim.wo[win].winblend = 15
+              vim.bo[buf].filetype = 'rust'
 
               local function close_popup()
                 vim.api.nvim_win_close(win, true)
