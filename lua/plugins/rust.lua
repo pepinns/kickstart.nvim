@@ -18,9 +18,7 @@ return {
               },
               checkOnSave = {
                 enable = true,
-                command = 'check',
-                extraArgs = { '--all-features', '--tests' },
-                features = 'all',
+                overrideCommand = { 'cargo', 'check', '--tests', '--all-features', '--message-format=json' },
               },
               diagnostics = {
                 enable = true,
