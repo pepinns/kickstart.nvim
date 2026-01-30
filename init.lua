@@ -430,6 +430,9 @@ require('lazy').setup({
 
       -- Useful for getting pretty icons, but requires a Nerd Font.
       { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
+      
+      -- Ensure treesitter is loaded before telescope for syntax highlighting in previews
+      { 'nvim-treesitter/nvim-treesitter' },
     },
     config = function()
       -- Telescope is a fuzzy finder that comes with a lot of different things that
@@ -570,8 +573,8 @@ require('lazy').setup({
       -- Automatically install LSPs and related tools to stdpath for Neovim
       -- Mason must be loaded before its dependents so we need to set it up here.
       -- NOTE: `opts = {}` is the same as calling `require('mason').setup({})`
-      { 'williamboman/mason.nvim', opts = {} },
-      'williamboman/mason-lspconfig.nvim',
+      { "mason-org/mason.nvim", opts = {} },
+      'mason-org/mason-lspconfig.nvim',
       'WhoIsSethDaniel/mason-tool-installer.nvim',
 
       -- Useful status updates for LSP.
@@ -811,91 +814,12 @@ require('lazy').setup({
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
         -- clangd = {},
-        gopls = {},
+        -- gopls = {},  -- Defined in lua/plugins/go.lua
         -- pyright = {},
-        -- https://github.com/rust-lang/rust-analyzer/blob/master/crates/rust-analyzer/src/config.rs#L548
-        rust_analyzer = {
-          capabilities = {
-            offsetEncoding = { 'utf-16' },
-          },
-          settings = {
-            ['rust-analyzer'] = {
-              mason_install = false,
-              cmd = { os.getenv 'HOME' .. '/.cargo/bin/rust-analyzer' },
-              cargo = {
-                allFeatures = true,
-                features = 'all',
-              },
-              checkOnSave = {
-                enable = true,
-                command = 'check',
-                extraArgs = { '--all-features', '--tests' },
-                features = 'all',
-              },
-              --   command = 'check', -- or "check"
-              --   extraArgs = { '--all-features', '--tests' },
-              -- },
-              diagnostics = {
-                enable = true,
-                disabled = { 'unresolved-proc-macro', 'unresolved-macro-call', 'proc-macro-disabled' },
-              },
-              typing = {
-                triggerChars = '=.{><',
-              },
-              hover = {
-                maxSubstitutionLength = 200,
-                show = {
-                  fields = 20,
-                  enumVariants = 20,
-                  traitAssocItems = 20,
-                },
-              },
-
-              semanticHighlighting = {
-                punctuation = {
-                  enable = true,
-                  specialization = {
-                    enable = true,
-                  },
-                  separate = {
-                    macro = {
-                      bang = true,
-                    },
-                  },
-                },
-                operator = {
-                  enable = true,
-                  specialization = {
-                    enable = true,
-                  },
-                },
-              },
-              procMacro = {
-                enable = true,
-                attributes = {
-                  enable = true,
-                },
-                ignored = {
-                  ['async-trait'] = { 'async_trait' },
-                  ['googletest'] = { 'gtest', 'test' },
-                  ['rstest'] = { 'rstest', 'awt' },
-                },
-              },
-            },
-          },
-        },
-        -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
-        --
-        -- Some languages (like typescript) have entire language plugins that can be useful:
-        --    https://github.com/pmizio/typescript-tools.nvim
-        --
-        -- But for many setups, the LSP (`ts_ls`) will work just fine
-        -- ts_ls = {},
-        --
-
+        -- rust_analyzer = {},  -- Defined in lua/plugins/rust.lua
         lua_ls = {
           -- cmd = { ... },
-          -- filetypes = { ... },
+          filetypes = { 'lua' },
           -- capabilities = {},
           settings = {
             Lua = {
@@ -908,6 +832,9 @@ require('lazy').setup({
           },
         },
       }
+
+      -- Merge the servers defined in init.lua with those from plugin-specific opts
+      opts.servers = vim.tbl_deep_extend('force', {}, servers, opts.servers or {})
 
       -- Ensure the servers and tools above are installed
       --
@@ -922,37 +849,117 @@ require('lazy').setup({
       --
       -- You can add other tools here that you want Mason to install
       -- for you, so that they are available from within Neovim.
-      local ensure_installed = {} --vim.tbl_keys(servers or {})
-      for server in pairs(opts.servers) do
-        if opts.servers[server].mason_install then
-          table.insert(ensure_installed, server)
-        else
-          require('lspconfig')[server].setup(opts.servers[server] or {})
+      
+      -- Configure global LSP settings that apply to all servers
+      vim.lsp.config('*', {
+        capabilities = capabilities,
+      })
+      
+      -- Configure each server using the new vim.lsp.config API
+      -- Note: We only register configs here, not enable them
+      -- Servers defined with `ft` in plugin specs will be enabled when those filetypes are loaded
+      for server_name, server_config in pairs(opts.servers) do
+        -- Create a clean server config without mason-specific fields
+        local lsp_config = vim.tbl_deep_extend('force', {}, server_config)
+        lsp_config.mason_install = nil
+        
+        -- Merge server-specific capabilities with global capabilities
+        -- This is needed for servers that define specific capability overrides
+        if lsp_config.capabilities then
+          lsp_config.capabilities = vim.tbl_deep_extend('force', {}, capabilities, lsp_config.capabilities)
+        end
+        
+        vim.lsp.config(server_name, lsp_config)
+      end
+      
+      -- Enable lua_ls for Lua files (used for Neovim config)
+      vim.lsp.enable('lua_ls')
+      
+      -- Create autocommands to enable language-specific servers when their filetypes are opened
+      -- This ensures servers only start when needed, not globally
+      
+      -- Track which servers have been enabled to avoid duplicates (persistent across potential reloads)
+      if not _G.kickstart_lsp_enabled_servers then
+        _G.kickstart_lsp_enabled_servers = {}
+      end
+      local enabled_servers = _G.kickstart_lsp_enabled_servers
+      
+      -- Track servers to install via Mason
+      local servers_to_install = {}
+      
+      -- Helper function to enable a server and mark it for Mason installation if needed
+      local function enable_and_install_server(server)
+        if enabled_servers[server] then
+          return
+        end
+        
+        vim.lsp.enable(server)
+        enabled_servers[server] = true
+        
+        -- Mark for Mason installation if needed
+        if opts.servers[server] and opts.servers[server].mason_install == true then
+          table.insert(servers_to_install, server)
+        end
+      end
+      
+      -- Determine which servers should not be enabled immediately (filetype-specific)
+      -- We check which servers have filetypes defined and are not lua_ls (which should be enabled immediately)
+      for server_name, server_config in pairs(opts.servers) do
+        if server_name ~= 'lua_ls' and server_config.filetypes and not enabled_servers[server_name] then
+          -- Check if any buffer with this filetype is already open
+          local found = false
+          for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+            if vim.api.nvim_buf_is_loaded(buf) then
+              local buf_ft = vim.api.nvim_get_option_value('filetype', { buf = buf })
+              for _, ft in ipairs(server_config.filetypes) do
+                if buf_ft == ft then
+                  enable_and_install_server(server_name)
+                  found = true
+                  break
+                end
+              end
+              if found then
+                break
+              end
+            end
+          end
+          
+          -- Set up autocommand for future filetypes (only if not already enabled)
+          if not enabled_servers[server_name] then
+            vim.api.nvim_create_autocmd('FileType', {
+              pattern = server_config.filetypes,
+              callback = function()
+                enable_and_install_server(server_name)
+              end,
+              once = true,
+            })
+          end
+        end
+      end
+      
+      -- Install all filetype-specific servers that were enabled
+      if #servers_to_install > 0 then
+        require('mason-tool-installer').setup {
+          ensure_installed = servers_to_install,
+          auto_update = false,
+          run_on_start = true,
+        }
+      end
+      
+      -- Setup mason to install servers that should be available immediately
+      -- (e.g., lua_ls for Neovim config files, and any other non-filetype-specific servers)
+      local ensure_installed = {}
+      for server_name, server_config in pairs(opts.servers) do
+        -- Only install immediately if not filetype-specific (i.e., doesn't have filetypes defined or is lua_ls)
+        local is_ft_specific = server_config.filetypes and server_name ~= 'lua_ls'
+        if server_config.mason_install == true and not is_ft_specific then
+          table.insert(ensure_installed, server_name)
         end
       end
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
-
-      require('mason-lspconfig').setup {
-        handlers = {
-          function(server_name)
-            local server = opts.servers[server_name] or {}
-            -- This handles overriding only values explicitly passed
-            -- by the server configuration above. Useful when disabling
-            -- certain features of an LSP (for example, turning off formatting for ts_ls)
-            server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-            require('lspconfig')[server_name].setup(server)
-          end,
-        },
-      }
-      -- I don't know why but when I try to do this without the mason-lspconfig above, it doesn't seem to pass the settigns properly
-      -- lconfig = require('lspconfig')
-      -- for server_name, server in pairs(opts.servers) do
-      --   server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-      --   lconfig[server_name].setup{server}
-      -- end
     end,
   },
 
@@ -1459,7 +1466,8 @@ require('lazy').setup({
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
-    main = 'nvim-treesitter.configs', -- Sets main module to use for opts
+    branch = "master",
+    lazy = false,
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
       ensure_installed = { 'rust', 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },

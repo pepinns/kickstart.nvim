@@ -4,12 +4,13 @@ return {
     'neovim/nvim-lspconfig',
     ft = { 'python' },
     opts = {
-        servers = { 
-            pyright = {
-              mason_install = true,
-              settings = {}
-            },
-          }
+      servers = {
+        pyright = {
+          mason_install = true,
+          filetypes = { 'python' },
+          settings = {},
         },
+      },
     },
+  },
 }

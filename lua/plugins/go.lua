@@ -4,15 +4,15 @@ return {
     'neovim/nvim-lspconfig',
     ft = { 'go' },
     opts = {
-        servers = { 
-            -- https://github.com/rust-lang/rust-analyzer/blob/master/crates/rust-analyzer/src/config.rs#L548
-            gopls = {
-              mason_install = true,
-              settings = {}
-            },
-          }
+      servers = {
+        gopls = {
+          mason_install = true,
+          filetypes = { 'go', 'gomod', 'gowork', 'gotmpl' },
+          settings = {},
         },
+      },
     },
+  },
   {
     'fredrikaverpil/neotest-golang',
     ft = 'go',
