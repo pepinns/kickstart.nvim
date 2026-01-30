@@ -12,13 +12,13 @@ Flash.nvim is a motion plugin that allows you to jump to any visible location qu
 
 - **`gm`** - Flash Jump: Jump to any visible text
   - Press `gm`, then type 1-2 characters you want to jump to
-  - Labels will appear at all matches
+  - Labels will appear at all matches **across all visible windows**
   - Type the label to jump there
   - Works in normal, visual, and operator-pending modes
   - **Note**: Changed from `s` to `gm` to avoid conflict with nvim-surround
 
 - **`gM`** - Flash Jump Line: Jump to any line
-  - Press `gM` to see labels at the start of each line
+  - Press `gM` to see labels at the start of each line **in all visible windows**
   - Type the label to jump to that line
   - Works in normal, visual, and operator-pending modes
   - **Note**: Changed from `S` to `gM` to avoid conflict with nvim-surround
@@ -130,7 +130,7 @@ opts = {
   search = {
     mode = 'exact',           -- 'exact', 'search', or 'fuzzy'
     incremental = false,      -- Show labels after first character
-    multi_window = true,      -- Search across all windows
+    multi_window = true,      -- Search across all windows (enabled by default)
   },
   jump = {
     jumplist = true,          -- Add jumps to jumplist (Ctrl-o to go back)
@@ -139,6 +139,16 @@ opts = {
   -- ... more options available ...
 }
 ```
+
+#### Multi-Window Jumping
+
+By default, flash.nvim is configured to jump across all visible windows in your current tab:
+- When you press `gm` or `gM`, labels will appear in **all open windows**, not just the current one
+- This makes it easy to navigate between split windows without switching focus first
+- The `multi_window = true` setting in the `search` section controls this behavior
+- Each jump command (`gm`, `gM`) explicitly enables multi-window support for maximum compatibility
+
+If you want to restrict jumping to only the current window, you can modify the jump functions in `lua/plugins/flash.lua` to set `multi_window = false`.
 
 ## Comparison with Avy (Emacs)
 
