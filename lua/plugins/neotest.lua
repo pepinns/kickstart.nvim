@@ -13,14 +13,14 @@ return {
     },
     opts = {
       status = { virtual_text = true },
+      -- output_panel can cause "E900: Invalid channel id" errors when the panel
+      -- window is closed while tests are running. The output window is more stable.
       output_panel = {
-        enabled = true,
-        open = 'botright vsplit | vertical resize 80',
+        enabled = false,
       },
       output = {
         enabled = true,
         open_on_run = true,
-        open_enter_on_run = true,
       },
     },
   -- stylua: ignore
@@ -49,6 +49,8 @@ return {
       { "<leader>tl", function() require("neotest").run.run_last() end, desc = "Run Last (Neotest)" },
       { "<leader>ts", function() require("neotest").summary.toggle() end, desc = "Toggle Summary (Neotest)" },
       { "<leader>to", function() require("neotest").output.open({ enter = true, auto_close = true }) end, desc = "Show Output (Neotest)" },
+      -- Note: output_panel is disabled by default to prevent E900 channel errors
+      -- Re-enable in opts.output_panel if needed, or use <leader>to for stable output
       { "<leader>tO", function() require("neotest").output_panel.toggle() end, desc = "Toggle Output Panel (Neotest)" },
       { "<leader>tS", function() require("neotest").run.stop() end, desc = "Stop (Neotest)" },
       { "<leader>tw", function() require("neotest").watch.toggle(vim.fn.expand("%")) end, desc = "Toggle Watch (Neotest)" },
