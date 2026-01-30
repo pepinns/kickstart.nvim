@@ -43,7 +43,7 @@ local flash_config = {
       -- Search mode behavior
       mode = 'exact', -- exact: exact match only, search: regular search, fuzzy: fuzzy match with scoring
       incremental = false, -- Show labels after first character
-      multi_window = true, -- Search across all visible windows
+      multi_window = true, -- Search across all visible windows (NOTE: this is also explicitly set in jump() calls below)
     },
     jump = {
       -- Jump behavior
@@ -93,7 +93,9 @@ if flash_config.jump_key then
     flash_config.jump_key,
     mode = { 'n', 'x', 'o' },
     function()
-      require('flash').jump()
+      require('flash').jump({
+        search = { multi_window = true },
+      })
     end,
     desc = 'Flash Jump (jump to any text)',
   })
@@ -106,7 +108,7 @@ if flash_config.jump_line_key then
     mode = { 'n', 'x', 'o' },
     function()
       require('flash').jump {
-        search = { mode = 'search', max_length = 0 },
+        search = { mode = 'search', max_length = 0, multi_window = true },
         label = { after = { 0, 0 } },
         pattern = '^',
       }
