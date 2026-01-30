@@ -120,7 +120,7 @@ return {
       -- Function to setup DAP after codelldb is ready
       local function setup_codelldb_dap()
         if not mason_registry.is_installed('codelldb') then
-          return false
+          return false, 'not_installed'
         end
         
         local package_path = mason_registry.get_package('codelldb'):get_install_path()
@@ -150,7 +150,7 @@ return {
               'Please install codelldb manually from: https://github.com/vadimcn/codelldb/releases'
           end
           vim.notify(error_msg, vim.log.levels.ERROR)
-          return false
+          return false, 'not_executable'
         end
         
         local library_path = package_path .. '/extension/lldb/lib/liblldb.dylib'
@@ -196,21 +196,29 @@ return {
             },
           }
         end
-        return true
+        return true, 'success'
       end
       
       -- Try to setup immediately
-      if not setup_codelldb_dap() then
-        -- If codelldb isn't ready yet, wait for mason-tool-installer to finish
-        vim.notify('codelldb is being installed by mason-tool-installer. DAP will be configured when ready.', vim.log.levels.INFO)
-        
-        -- Listen for package installation events
-        if mason_registry:has_package('codelldb') then
-          mason_registry.get_package('codelldb'):on('install:success', function()
-            setup_codelldb_dap()
-            vim.notify('codelldb installation complete. DAP configured successfully.', vim.log.levels.INFO)
-          end)
+      local success, reason = setup_codelldb_dap()
+      if not success then
+        if reason == 'not_installed' then
+          -- Only wait for installation if codelldb isn't installed yet
+          vim.notify('codelldb is being installed by mason-tool-installer. DAP will be configured when ready.', vim.log.levels.INFO)
+          
+          -- Listen for package installation events (only register once)
+          local event_registered = false
+          if mason_registry:has_package('codelldb') and not event_registered then
+            mason_registry.get_package('codelldb'):once('install:success', function()
+              local retry_success = setup_codelldb_dap()
+              if retry_success then
+                vim.notify('codelldb installation complete. DAP configured successfully.', vim.log.levels.INFO)
+              end
+            end)
+            event_registered = true
+          end
         end
+        -- If reason is 'not_executable', the error was already shown in setup_codelldb_dap
       end
     end,
   },
