@@ -43,7 +43,7 @@ local flash_config = {
       -- Search mode behavior
       mode = 'exact', -- exact: exact match only, search: regular search, fuzzy: fuzzy match with scoring
       incremental = false, -- Show labels after first character
-      multi_window = true, -- Search across all visible windows (NOTE: this is also explicitly set in jump() calls below)
+      multi_window = true, -- Search across all visible windows (also passed explicitly to jump() calls for clarity)
     },
     jump = {
       -- Jump behavior
@@ -88,6 +88,7 @@ end
 local keys = {}
 
 -- Add jump key if configured
+-- NOTE: multi_window = true is explicitly passed to ensure cross-window jumping works reliably
 if flash_config.jump_key then
   table.insert(keys, {
     flash_config.jump_key,
