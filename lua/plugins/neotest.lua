@@ -113,6 +113,13 @@ return {
     config = function()
       require('mason-tool-installer').setup { ensure_installed = { 'codelldb' } }
       
+      -- Use mason-registry to dynamically get the codelldb installation path
+      local mason_registry = require('mason-registry')
+      if not mason_registry.is_installed('codelldb') then
+        vim.notify('codelldb is not installed. Please run :MasonInstall codelldb or wait for mason-tool-installer to complete installation.', vim.log.levels.WARN)
+        return
+      end
+      
       -- Check architecture for ARM-specific issues
       -- NOTE: Mason's codelldb does not support ARM Linux (aarch64/arm64)
       -- If you're on ARM Linux:
@@ -120,21 +127,18 @@ return {
       --   2. Extract it to a location (e.g., ~/.local/share/codelldb)
       --   3. Update codelldb_path below to point to your installation
       --   4. Example: local codelldb_path = vim.fn.expand('~/.local/share/codelldb/adapter/codelldb')
-      local arch = io.popen('uname -m'):read '*l'
-      if arch == 'aarch64' or arch == 'arm64' then
-        vim.notify(
-          'codelldb from Mason does not support ARM Linux. ' ..
-          'Please install codelldb manually from: https://github.com/vadimcn/codelldb/releases ' ..
-          'and update the codelldb_path in this config file.',
-          vim.log.levels.WARN
-        )
-      end
-      
-      -- Use mason-registry to dynamically get the codelldb installation path
-      local mason_registry = require('mason-registry')
-      if not mason_registry.is_installed('codelldb') then
-        vim.notify('codelldb is not installed. Please run :MasonInstall codelldb or wait for mason-tool-installer to complete installation.', vim.log.levels.WARN)
-        return
+      local arch_handle = io.popen('uname -m')
+      if arch_handle then
+        local arch = arch_handle:read '*l'
+        arch_handle:close()
+        if arch == 'aarch64' or arch == 'arm64' then
+          vim.notify(
+            'codelldb from Mason does not support ARM Linux. ' ..
+            'Please install codelldb manually from: https://github.com/vadimcn/codelldb/releases ' ..
+            'and update the codelldb_path in this config file.',
+            vim.log.levels.WARN
+          )
+        end
       end
       
       local package_path = mason_registry.get_package('codelldb'):get_install_path()
@@ -152,9 +156,13 @@ return {
       end
       
       local library_path = package_path .. '/extension/lldb/lib/liblldb.dylib'
-      local uname = io.popen('uname'):read '*l'
-      if uname == 'Linux' then
-        library_path = package_path .. '/extension/lldb/lib/liblldb.so'
+      local uname_handle = io.popen('uname')
+      if uname_handle then
+        local uname = uname_handle:read '*l'
+        uname_handle:close()
+        if uname == 'Linux' then
+          library_path = package_path .. '/extension/lldb/lib/liblldb.so'
+        end
       end
       local dap = require 'dap'
       dap.adapters.codelldb = {
