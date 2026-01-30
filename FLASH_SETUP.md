@@ -107,8 +107,8 @@ toggle_search_key = '<c-s>',
 
 #### Setup 3: Alternative Keys (No Conflicts)
 ```lua
-jump_key = '<leader>j',      -- Space + j
-jump_line_key = '<leader>J', -- Space + J
+jump_key = '<leader>j',      -- Leader + j (Space + j if leader is Space)
+jump_line_key = '<leader>J', -- Leader + J (Space + J if leader is Space)
 treesitter_key = '<leader>t',
 toggle_search_key = '<c-f>', -- Ctrl+f in search
 ```
@@ -195,3 +195,4 @@ Visual/Operator Modes:
   c + s     Change to target
   y + s     Yank to target
 ```
+

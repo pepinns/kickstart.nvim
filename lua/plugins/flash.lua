@@ -36,7 +36,7 @@ local flash_config = {
     labels = 'asdfghjklqwertyuiopzxcvbnm', -- Characters used for jump labels (most common keys under fingers)
     search = {
       -- Search mode behavior
-      mode = 'exact', -- exact: exact match, search: fuzzy search, fuzzy: fuzzy search with scoring
+      mode = 'exact', -- exact: exact match only, search: regular search, fuzzy: fuzzy match with scoring
       incremental = false, -- Show labels after first character
       multi_window = true, -- Search across all visible windows
     },
@@ -164,3 +164,4 @@ return {
   opts = flash_config.opts,
   keys = keys,
 }
+
