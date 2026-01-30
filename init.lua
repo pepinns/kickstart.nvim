@@ -674,12 +674,33 @@ require('lazy').setup({
                 vim.print('Error: ' .. err.message)
                 return
               end
-              local buf = vim.api.nvim_create_buf(false, true)
-              local exp = result['expansion']
-              local lines = {}
-              for line in exp:gmatch '[^\r\n]+' do
-                table.insert(lines, line)
+              
+              -- Validate result has expansion field
+              if not result or not result.expansion then
+                vim.print('No macro expansion available')
+                return
               end
+              
+              local exp = result.expansion
+              local lines = {}
+              
+              -- Split expansion into lines, handling both multi-line and single-line expansions
+              if exp:find('[\r\n]') then
+                for line in exp:gmatch('[^\r\n]+') do
+                  table.insert(lines, line)
+                end
+              else
+                -- Single line expansion
+                table.insert(lines, exp)
+              end
+              
+              -- Handle empty expansion
+              if #lines == 0 then
+                vim.print('Macro expansion is empty')
+                return
+              end
+              
+              local buf = vim.api.nvim_create_buf(false, true)
               vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
               
               -- Configure floating window options
@@ -699,11 +720,12 @@ require('lazy').setup({
               vim.wo[win].winblend = 15
               vim.bo[buf].filetype = 'rust'
 
-              local function close_popup()
-                vim.api.nvim_win_close(win, true)
-              end
-
-              vim.api.nvim_buf_set_keymap(buf, 'n', 'q', '<cmd>lua close_popup()<CR>', { noremap = true, silent = true })
+              -- Set up keymap to close the window using window and buffer IDs directly
+              vim.keymap.set('n', 'q', function()
+                if vim.api.nvim_win_is_valid(win) then
+                  vim.api.nvim_win_close(win, true)
+                end
+              end, { buffer = buf, noremap = true, silent = true })
             end)
           end, 'expand macro')
 
