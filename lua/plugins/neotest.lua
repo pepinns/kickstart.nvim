@@ -119,43 +119,45 @@ return {
       
       -- Function to setup DAP after codelldb is ready
       local function setup_codelldb_dap()
-        if not mason_registry.is_installed('codelldb') then
-          return false, 'not_installed'
+        -- Check architecture first for ARM Linux
+        local arch_handle = io.popen('uname -m')
+        local os_handle = io.popen('uname')
+        local is_arm_linux = false
+        
+        if arch_handle and os_handle then
+          local arch = arch_handle:read '*l'
+          local os_name = os_handle:read '*l'
+          arch_handle:close()
+          os_handle:close()
+          is_arm_linux = (arch == 'aarch64' or arch == 'arm64') and os_name == 'Linux'
+        elseif arch_handle then
+          arch_handle:close()
+        elseif os_handle then
+          os_handle:close()
         end
         
-        local package_path = mason_registry.get_package('codelldb'):get_install_path()
+        -- Determine package path based on platform
+        local package_path
+        if is_arm_linux then
+          -- ARM Linux: use well-known location since Mason doesn't support it
+          package_path = vim.fn.expand('~/.local/share/codelldb')
+        else
+          -- Other platforms: use Mason's installation
+          if not mason_registry.is_installed('codelldb') then
+            return false, 'not_installed'
+          end
+          package_path = mason_registry.get_package('codelldb'):get_install_path()
+        end
+        
         local codelldb_path = package_path .. '/extension/adapter/codelldb'
         
         -- Verify the codelldb binary exists and is executable
         if vim.fn.executable(codelldb_path) == 0 then
-          -- Check architecture for ARM-specific issues
-          -- NOTE: Mason's codelldb does not support ARM Linux (aarch64/arm64)
-          -- If you're on ARM Linux:
-          --   1. Download codelldb from https://github.com/vadimcn/codelldb/releases
-          --   2. Extract it to a location (e.g., ~/.local/share/codelldb)
-          --   3. Update codelldb_path below to point to your installation
-          --   4. Example: local codelldb_path = vim.fn.expand('~/.local/share/codelldb/adapter/codelldb')
-          local arch_handle = io.popen('uname -m')
-          local os_handle = io.popen('uname')
-          local is_arm_linux = false
-          
-          if arch_handle and os_handle then
-            local arch = arch_handle:read '*l'
-            local os_name = os_handle:read '*l'
-            arch_handle:close()
-            os_handle:close()
-            is_arm_linux = (arch == 'aarch64' or arch == 'arm64') and os_name == 'Linux'
-          elseif arch_handle then
-            arch_handle:close()
-          elseif os_handle then
-            os_handle:close()
-          end
-          
           local error_msg = 'codelldb binary not found or not executable at: ' .. codelldb_path
           if is_arm_linux then
             error_msg = error_msg .. '\n' ..
-              "Mason's codelldb does not support ARM Linux. " ..
-              'Please install codelldb manually from: https://github.com/vadimcn/codelldb/releases'
+              'Get codelldb from: https://github.com/vadimcn/codelldb/releases\n' ..
+              'Extract to: ~/.local/share/codelldb'
           else
             error_msg = error_msg .. '\n' ..
               'If the issue persists, you can reload the configuration with :source $MYVIMRC'
