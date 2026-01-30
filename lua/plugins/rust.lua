@@ -18,7 +18,7 @@ return {
               },
               checkOnSave = {
                 enable = true,
-                overrideCommand = { 'cargo', 'check', '--tests', '--all-features', '--message-format=json' },
+                overrideCommand = { 'cargo', 'build', '--tests', '--all-features', '--message-format=json' },
               },
               diagnostics = {
                 enable = true,
