@@ -10,16 +10,18 @@ Flash.nvim is a motion plugin that allows you to jump to any visible location qu
 
 ### Main Navigation (Enabled by Default)
 
-- **`s`** - Flash Jump: Jump to any visible text
-  - Press `s`, then type 1-2 characters you want to jump to
+- **`gm`** - Flash Jump: Jump to any visible text
+  - Press `gm`, then type 1-2 characters you want to jump to
   - Labels will appear at all matches
   - Type the label to jump there
   - Works in normal, visual, and operator-pending modes
+  - **Note**: Changed from `s` to `gm` to avoid conflict with nvim-surround
 
-- **`S`** - Flash Jump Line: Jump to any line
-  - Press `S` to see labels at the start of each line
+- **`gM`** - Flash Jump Line: Jump to any line
+  - Press `gM` to see labels at the start of each line
   - Type the label to jump to that line
   - Works in normal, visual, and operator-pending modes
+  - **Note**: Changed from `S` to `gM` to avoid conflict with nvim-surround
 
 - **`<Ctrl-s>`** - Toggle Flash Search (in command mode)
   - While using `/` or `?` to search, press `<Ctrl-s>` to show flash labels at all matches
@@ -36,24 +38,24 @@ These are disabled to avoid conflicts. Enable them by editing the config (see be
 ## Usage Examples
 
 ### Example 1: Quick Character Jump (like avy-goto-char-2)
-1. Press `s`
+1. Press `gm`
 2. Type `fu` (first two characters of "function")
 3. Labels appear at all "fu" matches
 4. Type the label letter to jump there
 
 ### Example 2: Jump to Any Line (like avy-goto-line)
-1. Press `S`
+1. Press `gM`
 2. Labels appear at the start of each visible line
 3. Type the label to jump to that line
 
 ### Example 3: Visual Selection with Flash
 1. Press `v` to enter visual mode
-2. Press `s`, then type characters to jump
+2. Press `gm`, then type characters to jump
 3. Your selection extends to the jump target
 
 ### Example 4: Operator + Flash (e.g., delete to target)
 1. Press `d` to start delete operation
-2. Press `s`, then type characters
+2. Press `gm`, then type characters
 3. Text from cursor to target gets deleted
 
 ### Example 5: Enhanced Search
@@ -74,8 +76,8 @@ Edit these values in the `flash_config` table:
 local flash_config = {
   enabled = true,              -- Set to false to disable flash entirely
   
-  jump_key = 's',              -- Change 's' to your preferred key (or nil to disable)
-  jump_line_key = 'S',         -- Change 'S' to your preferred key (or nil to disable)
+  jump_key = 'gm',             -- Current: 'gm' (or change to your preferred key, or nil to disable)
+  jump_line_key = 'gM',        -- Current: 'gM' (or change to your preferred key, or nil to disable)
   
   treesitter_key = nil,        -- Set to 'T' or another key to enable
   remote_key = nil,            -- Set to 'r' or another key to enable
@@ -86,26 +88,31 @@ local flash_config = {
 }
 ```
 
+**Note**: The default keys were changed from `s`/`S` to `gm`/`gM` to avoid conflicts with nvim-surround. Other good alternatives include:
+- `<leader>j` and `<leader>J` (leader + jump)
+- `;` and `,` (if you don't use them to repeat f/F/t/T)
+- `m` and `M` (if you don't use marks frequently)
+
 ### Examples of Different Keybinding Setups
 
 #### Setup 1: Minimal (Just Basic Jump)
 ```lua
-jump_key = 's',
+jump_key = 'gm',
 jump_line_key = nil,         -- Disable line jump
 toggle_search_key = nil,     -- Disable search toggle
 ```
 
 #### Setup 2: All Features Enabled
 ```lua
-jump_key = 's',
-jump_line_key = 'S',
+jump_key = 'gm',
+jump_line_key = 'gM',
 treesitter_key = 'T',
 remote_key = 'r',
 treesitter_search_key = 'R',
 toggle_search_key = '<c-s>',
 ```
 
-#### Setup 3: Alternative Keys (No Conflicts)
+#### Setup 3: Alternative Keys with Leader
 ```lua
 jump_key = '<leader>j',      -- Leader + j (Space + j if leader is Space)
 jump_line_key = '<leader>J', -- Leader + J (Space + J if leader is Space)
@@ -183,16 +190,16 @@ jump_key = 's',  -- Keep this, then in the setup code change:
 
 ```
 Motion Commands:
-  s         Flash jump to any text (type 2 chars + label)
-  S         Flash jump to any line (type label)
+  gm        Flash jump to any text (type 2 chars + label)
+  gM        Flash jump to any line (type label)
   
 In Search (/ or ?):
   <C-s>     Toggle flash labels on search results
 
 Visual/Operator Modes:
-  v + s     Extend selection to target
-  d + s     Delete to target
-  c + s     Change to target
-  y + s     Yank to target
+  v + gm    Extend selection to target
+  d + gm    Delete to target
+  c + gm    Change to target
+  y + gm    Yank to target
 ```
 

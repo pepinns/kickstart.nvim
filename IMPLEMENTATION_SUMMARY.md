@@ -10,9 +10,10 @@ This branch (`copilot/enable-flash-with-hotkey-config`) has been configured with
    - Now fully configured with explicit, customizable keybindings
 
 ### 2. **Default Keybindings (Active)**
-   - **`s`** - Flash Jump: Jump to any visible text by typing 2 characters
-   - **`S`** - Flash Line Jump: Jump to the start of any visible line
+   - **`gm`** - Flash Jump: Jump to any visible text by typing 2 characters
+   - **`gM`** - Flash Line Jump: Jump to the start of any visible line
    - **`<C-s>`** - Toggle flash labels during search (`/` or `?`)
+   - **Note**: Changed from `s`/`S` to `gm`/`gM` to avoid conflict with nvim-surround
 
 ### 3. **Optional Features (Disabled by Default)**
    These can be enabled by editing `lua/plugins/flash.lua`:
@@ -25,8 +26,8 @@ This branch (`copilot/enable-flash-with-hotkey-config`) has been configured with
    ```lua
    local flash_config = {
      enabled = true,           -- Master switch
-     jump_key = 's',          -- Main jump key
-     jump_line_key = 'S',     -- Line jump key
+     jump_key = 'gm',          -- Main jump key (changed from 's' to avoid nvim-surround conflict)
+     jump_line_key = 'gM',     -- Line jump key (changed from 'S')
      treesitter_key = nil,    -- Disabled by default
      remote_key = nil,        -- Disabled by default
      toggle_search_key = '<c-s>',
@@ -52,9 +53,9 @@ This branch (`copilot/enable-flash-with-hotkey-config`) has been configured with
    ```
    nvim any_file.txt
    ```
-   - Press `s`, then type any 2 characters visible on screen
+   - Press `gm`, then type any 2 characters visible on screen
    - Labels will appear - type a label to jump there
-   - Press `S` to jump to any line
+   - Press `gM` to jump to any line
 
 2. **Customize keybindings**:
    - Edit `lua/plugins/flash.lua`
@@ -69,10 +70,10 @@ This branch (`copilot/enable-flash-with-hotkey-config`) has been configured with
 
 | Feature | Avy (Emacs) | Flash.nvim | Key |
 |---------|-------------|------------|-----|
-| Jump to characters | `avy-goto-char-2` | Flash Jump | `s` |
-| Jump to line | `avy-goto-line` | Flash Line Jump | `S` |
+| Jump to characters | `avy-goto-char-2` | Flash Jump | `gm` |
+| Jump to line | `avy-goto-line` | Flash Line Jump | `gM` |
 | Jump during search | (varies) | Toggle Flash | `<C-s>` in search |
-| Visual selection | Works with selections | Works with visual mode | `v` then `s` |
+| Visual selection | Works with selections | Works with visual mode | `v` then `gm` |
 
 ## Key Design Decisions
 
@@ -81,6 +82,7 @@ This branch (`copilot/enable-flash-with-hotkey-config`) has been configured with
 3. **No Hijacking**: Doesn't override vim's native `f/F/t/T` keys by default
 4. **Safe Defaults**: Advanced features disabled by default to avoid conflicts
 5. **Clear Comments**: Every option is documented inline
+6. **Conflict Avoidance**: Default keys changed from `s`/`S` to `gm`/`gM` to avoid nvim-surround conflict
 
 ## Files Changed
 

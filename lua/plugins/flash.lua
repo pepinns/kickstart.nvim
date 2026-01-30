@@ -13,8 +13,13 @@ local flash_config = {
 
   -- Main jump keybindings (jump to any visible text with labels)
   -- Similar to avy-goto-char-2 in emacs
-  jump_key = 's', -- Press 's' then type characters to jump (works in normal, visual, operator-pending modes)
-  jump_line_key = 'S', -- Press 'S' to jump to any line (works in normal, visual, operator-pending modes)
+  -- NOTE: 's' conflicts with nvim-surround in visual mode. Alternatives:
+  --   - 'gm' (less commonly used motion)
+  --   - '<leader>j' (leader + jump, no conflicts)
+  --   - ';' (if you don't use ; to repeat f/F/t/T)
+  --   - 'm' (if you don't use marks frequently)
+  jump_key = 'gm', -- Press 'gm' then type characters to jump (works in normal, visual, operator-pending modes)
+  jump_line_key = 'gM', -- Press 'gM' to jump to any line (works in normal, visual, operator-pending modes)
 
   -- Treesitter-based navigation (jump to language constructs like functions, classes, etc.)
   -- Similar to avy-goto-word in emacs but smarter with syntax awareness
