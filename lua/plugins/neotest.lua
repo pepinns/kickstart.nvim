@@ -111,44 +111,124 @@ return {
     },
     ft = { 'rust', 'c', 'c++' },
     config = function()
+      -- Note: mason-tool-installer will automatically install codelldb if missing
       require('mason-tool-installer').setup { ensure_installed = { 'codelldb' } }
-      -- local package_path = require('mason-registry').get_package('codelldb'):get_install_path()
-      local package_path = '/home/jpepin/.local/share/nvim/mason/packages/codelldb'
-      local codelldb_path = package_path .. '/extension/adapter/codelldb'
-      local library_path = package_path .. '/extension/lldb/lib/liblldb.dylib'
-      local uname = io.popen('uname'):read '*l'
-      if uname == 'Linux' then
-        library_path = package_path .. '/extension/lldb/lib/liblldb.so'
-      end
-      local dap = require 'dap'
-      dap.adapters.codelldb = {
-        type = 'server',
-        port = '${port}',
-        host = '127.0.0.1',
-        executable = {
-          command = codelldb_path,
-          args = { '--liblldb', library_path, '--port', '${port}' },
-        },
-      }
-      for _, lang in ipairs { 'rust' } do
-        dap.configurations[lang] = {
-          {
-            type = 'codelldb',
-            request = 'launch',
-            name = 'Launch file',
-            program = function()
-              return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
-            end,
-            cwd = '${workspaceFolder}',
-          },
-          {
-            type = 'codelldb',
-            request = 'attach',
-            name = 'Attach to process',
-            pid = require('dap.utils').pick_process,
-            cwd = '${workspaceFolder}',
+      
+      -- Use mason-registry to dynamically get the codelldb installation path
+      local mason_registry = require('mason-registry')
+      
+      -- Function to setup DAP after codelldb is ready
+      local function setup_codelldb_dap()
+        -- Check architecture first for ARM Linux
+        local arch_handle = io.popen('uname -m')
+        local os_handle = io.popen('uname')
+        local is_arm_linux = false
+        local os_name = nil
+        
+        if arch_handle and os_handle then
+          local arch = arch_handle:read '*l'
+          os_name = os_handle:read '*l'
+          arch_handle:close()
+          os_handle:close()
+          is_arm_linux = (arch == 'aarch64' or arch == 'arm64') and os_name == 'Linux'
+        elseif arch_handle then
+          arch_handle:close()
+        elseif os_handle then
+          os_name = os_handle:read '*l'
+          os_handle:close()
+        end
+        
+        -- Determine package path based on platform
+        local package_path
+        if is_arm_linux then
+          -- ARM Linux: use well-known location since Mason doesn't support it
+          package_path = vim.fn.expand('~/.local/share/codelldb')
+        else
+          -- Other platforms: use Mason's installation
+          if not mason_registry.is_installed('codelldb') then
+            return false, 'not_installed'
+          end
+          package_path = mason_registry.get_package('codelldb'):get_install_path()
+        end
+        
+        local codelldb_path = package_path .. '/extension/adapter/codelldb'
+        
+        -- Verify the codelldb binary exists and is executable
+        if vim.fn.executable(codelldb_path) == 0 then
+          local error_msg = 'codelldb binary not found or not executable at: ' .. codelldb_path
+          if is_arm_linux then
+            error_msg = error_msg .. '\n' ..
+              'Get codelldb from: https://github.com/vadimcn/codelldb/releases\n' ..
+              'Extract to: ~/.local/share/codelldb'
+          else
+            error_msg = error_msg .. '\n' ..
+              'If the issue persists, you can reload the configuration with :source $MYVIMRC'
+          end
+          vim.notify(error_msg, vim.log.levels.ERROR)
+          return false, 'not_executable'
+        end
+        
+        -- Determine library path based on OS (reuse os_name from earlier)
+        local library_path = package_path .. '/extension/lldb/lib/liblldb.dylib'
+        if os_name == 'Linux' then
+          library_path = package_path .. '/extension/lldb/lib/liblldb.so'
+        end
+        
+        local dap = require 'dap'
+        dap.adapters.codelldb = {
+          type = 'server',
+          port = '${port}',
+          host = '127.0.0.1',
+          executable = {
+            command = codelldb_path,
+            args = { '--liblldb', library_path, '--port', '${port}' },
           },
         }
+        for _, lang in ipairs { 'rust' } do
+          dap.configurations[lang] = {
+            {
+              type = 'codelldb',
+              request = 'launch',
+              name = 'Launch file',
+              program = function()
+                return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+              end,
+              cwd = '${workspaceFolder}',
+            },
+            {
+              type = 'codelldb',
+              request = 'attach',
+              name = 'Attach to process',
+              pid = require('dap.utils').pick_process,
+              cwd = '${workspaceFolder}',
+            },
+          }
+        end
+        return true, 'success'
+      end
+      
+      -- Try to setup immediately
+      local success, reason = setup_codelldb_dap()
+      if not success then
+        if reason == 'not_installed' then
+          -- Only wait for installation if codelldb isn't installed yet
+          vim.notify('codelldb is being installed by mason-tool-installer. DAP will be configured when ready.', vim.log.levels.INFO)
+          
+          -- Listen for package installation events
+          -- Using :once() ensures the callback only fires once even if registered multiple times
+          if mason_registry:has_package('codelldb') then
+            mason_registry.get_package('codelldb'):once('install:success', function()
+              local retry_success, retry_reason = setup_codelldb_dap()
+              if retry_success then
+                vim.notify('codelldb installation complete. DAP configured successfully.', vim.log.levels.INFO)
+              else
+                -- Log if retry failed for diagnostics
+                vim.notify('codelldb installed but configuration failed: ' .. (retry_reason or 'unknown reason'), vim.log.levels.WARN)
+              end
+            end)
+          end
+        end
+        -- If reason is 'not_executable', the error was already shown in setup_codelldb_dap
       end
     end,
   },
