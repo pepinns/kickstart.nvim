@@ -144,9 +144,9 @@ opts = {
 
 | Avy (Emacs) | Flash.nvim | Description |
 |-------------|------------|-------------|
-| `avy-goto-char-2` | `s` (then 2 chars) | Jump to any two characters |
-| `avy-goto-line` | `S` | Jump to any line |
-| `avy-goto-word-1` | `s` (then word start) | Jump to word beginning |
+| `avy-goto-char-2` | `gm` (then 2 chars) | Jump to any two characters |
+| `avy-goto-line` | `gM` | Jump to any line |
+| `avy-goto-word-1` | `gm` (then word start) | Jump to word beginning |
 | `avy-copy-line` | `remote_key` (disabled) | Operate on remote text |
 
 ## Troubleshooting
@@ -174,7 +174,7 @@ label = {
 ### Issue: Don't want flash to work in certain modes
 **Solution**: Modify the `mode` parameter for specific keybindings. For example, to only enable flash in normal mode:
 ```lua
-jump_key = 's',  -- Keep this, then in the setup code change:
+jump_key = 'gm',  -- Keep this, then in the setup code change:
 -- mode = { 'n', 'x', 'o' },  -- Original
 -- to:
 -- mode = { 'n' },  -- Only normal mode
