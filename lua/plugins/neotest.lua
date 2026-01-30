@@ -114,6 +114,12 @@ return {
       require('mason-tool-installer').setup { ensure_installed = { 'codelldb' } }
       
       -- Check architecture for ARM-specific issues
+      -- NOTE: Mason's codelldb does not support ARM Linux (aarch64/arm64)
+      -- If you're on ARM Linux:
+      --   1. Download codelldb from https://github.com/vadimcn/codelldb/releases
+      --   2. Extract it to a location (e.g., ~/.local/share/codelldb)
+      --   3. Update codelldb_path below to point to your installation
+      --   4. Example: local codelldb_path = vim.fn.expand('~/.local/share/codelldb/adapter/codelldb')
       local arch = io.popen('uname -m'):read '*l'
       if arch == 'aarch64' or arch == 'arm64' then
         vim.notify(
