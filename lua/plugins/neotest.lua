@@ -123,16 +123,18 @@ return {
         local arch_handle = io.popen('uname -m')
         local os_handle = io.popen('uname')
         local is_arm_linux = false
+        local os_name = nil
         
         if arch_handle and os_handle then
           local arch = arch_handle:read '*l'
-          local os_name = os_handle:read '*l'
+          os_name = os_handle:read '*l'
           arch_handle:close()
           os_handle:close()
           is_arm_linux = (arch == 'aarch64' or arch == 'arm64') and os_name == 'Linux'
         elseif arch_handle then
           arch_handle:close()
         elseif os_handle then
+          os_name = os_handle:read '*l'
           os_handle:close()
         end
         
@@ -166,17 +168,10 @@ return {
           return false, 'not_executable'
         end
         
+        -- Determine library path based on OS (reuse os_name from earlier)
         local library_path = package_path .. '/extension/lldb/lib/liblldb.dylib'
-        local uname_handle = io.popen('uname')
-        if uname_handle then
-          local uname = uname_handle:read '*l'
-          uname_handle:close()
-          if uname == 'Linux' then
-            library_path = package_path .. '/extension/lldb/lib/liblldb.so'
-          end
-        else
-          -- If we can't determine OS, provide a warning and use platform-specific fallback
-          vim.notify('Warning: Unable to detect OS. Using default library path.', vim.log.levels.WARN)
+        if os_name == 'Linux' then
+          library_path = package_path .. '/extension/lldb/lib/liblldb.so'
         end
         
         local dap = require 'dap'
